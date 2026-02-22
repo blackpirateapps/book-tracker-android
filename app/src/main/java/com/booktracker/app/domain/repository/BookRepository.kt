@@ -8,4 +8,5 @@ interface BookRepository {
     suspend fun addBook(book: Book)
     suspend fun updateBook(book: Book)
     suspend fun deleteBook(id: String)
+    suspend fun testConnection(): Result<Boolean>
 }

@@ -76,10 +76,9 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Filter Chips
-            ScrollableTabRow(
+            TabRow(
                 selectedTabIndex = shelves.indexOf(uiState.selectedShelf),
-                edgePadding = 16.dp,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 containerColor = Color.Transparent,
                 divider = {}
             ) {
@@ -87,7 +86,12 @@ fun HomeScreen(
                     Tab(
                         selected = uiState.selectedShelf == shelf,
                         onClick = { onEvent(HomeEvent.OnShelfChanged(shelf)) },
-                        text = { Text(shelf.displayName) }
+                        text = { 
+                            Text(
+                                text = shelf.displayName,
+                                style = MaterialTheme.typography.labelSmall
+                            ) 
+                        }
                     )
                 }
             }

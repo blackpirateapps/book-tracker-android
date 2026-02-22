@@ -30,4 +30,8 @@ class MockBookRepository : BookRepository {
     override suspend fun deleteBook(id: String) {
         books.removeAll { it.id == id }
     }
+
+    override suspend fun testConnection(): Result<Boolean> {
+        return Result.success(true)
+    }
 }

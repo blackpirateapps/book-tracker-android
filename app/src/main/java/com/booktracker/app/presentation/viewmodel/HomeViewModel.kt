@@ -11,7 +11,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+import androidx.lifecycle.SavedStateHandle
+
 class HomeViewModel(
+    private val savedStateHandle: SavedStateHandle,
     private val getBooksUseCase: GetBooksUseCase
 ) : ViewModel() {
 
@@ -20,6 +23,19 @@ class HomeViewModel(
 
     init {
         loadBooks()
+        viewModelScope.launch {
+            savedStateHandle.getStateFlow<String?>("shelf", null).collect { shelfStr ->
+                if (shelfStr != null) {
+                    try {
+                        val newShelf = ShelfType.valueOf(shelfStr)
+                        _uiState.update { it.copy(selectedShelf = newShelf) }
+                        filterBooks()
+                    } catch (e: Exception) {
+                        // Ignored
+                    }
+                }
+            }
+        }
     }
 
     fun onEvent(event: HomeEvent) {
@@ -69,10 +85,10 @@ class HomeViewModel(
         _uiState.update { it.copy(filteredBooks = filtered) }
     }
 
-    class Factory(private val getBooksUseCase: GetBooksUseCase) : ViewModelProvider.Factory {
+    class Factory(private val savedStateHandle: SavedStateHandle, private val getBooksUseCase: GetBooksUseCase) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return HomeViewModel(getBooksUseCase) as T
+            return HomeViewModel(savedStateHandle, getBooksUseCase) as T
         }
     }
 }

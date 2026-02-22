@@ -11,6 +11,12 @@ import androidx.compose.ui.unit.dp
 
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,8 +27,13 @@ fun SettingsScreen(
     apiDomain: String = "",
     onApiDomainChanged: (String) -> Unit = {},
     apiPassword: String = "",
-    onApiPasswordChanged: (String) -> Unit = {}
+    onApiPasswordChanged: (String) -> Unit = {},
+    onTestConnection: suspend () -> Result<Boolean> = { Result.success(true) }
 ) {
+    val scope = rememberCoroutineScope()
+    var isTesting by remember { mutableStateOf(false) }
+    var testResult by remember { mutableStateOf<Boolean?>(null) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -85,7 +96,7 @@ fun SettingsScreen(
             // Backend Section
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "Backend (Mock)",
+                    text = "Backend",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -102,7 +113,10 @@ fun SettingsScreen(
                     ) {
                         OutlinedTextField(
                             value = apiDomain,
-                            onValueChange = onApiDomainChanged,
+                            onValueChange = { 
+                                onApiDomainChanged(it)
+                                testResult = null
+                            },
                             label = { Text("API Domain") },
                             placeholder = { Text("https://api.example.com") },
                             modifier = Modifier.fillMaxWidth(),
@@ -110,12 +124,45 @@ fun SettingsScreen(
                         )
                         OutlinedTextField(
                             value = apiPassword,
-                            onValueChange = onApiPasswordChanged,
+                            onValueChange = { 
+                                onApiPasswordChanged(it)
+                                testResult = null
+                            },
                             label = { Text("API Password") },
                             visualTransformation = PasswordVisualTransformation(),
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true
                         )
+
+                        Button(
+                            onClick = {
+                                isTesting = true
+                                testResult = null
+                                scope.launch {
+                                    val result = onTestConnection()
+                                    testResult = result.isSuccess
+                                    isTesting = false
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isTesting && apiDomain.isNotBlank()
+                        ) {
+                            if (isTesting) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text("Test Connection")
+                            }
+                        }
+
+                        if (testResult != null) {
+                            val color = if (testResult == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                            val text = if (testResult == true) "Connection successful!" else "Connection failed. Check URL or password."
+                            Text(text = text, color = color, style = MaterialTheme.typography.bodyMedium)
+                        }
                     }
                 }
             }

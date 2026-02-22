@@ -107,22 +107,37 @@ fun AddBookScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 
-                ScrollableTabRow(
-                    selectedTabIndex = shelves.indexOf(uiState.shelf),
-                    edgePadding = 0.dp,
-                    modifier = Modifier.fillMaxWidth(),
-                    containerColor = Color.Transparent,
-                    divider = {}
+                var expanded by remember { mutableStateOf(false) }
+                
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    shelves.forEachIndexed { index, shelf ->
-                        Tab(
-                            selected = uiState.shelf == shelf,
-                            onClick = { onEvent(AddBookEvent.OnShelfChanged(shelf)) },
-                            text = { Text(shelf.displayName) }
-                        )
+                    OutlinedTextField(
+                        value = uiState.shelf.displayName,
+                        onValueChange = {},
+                        readOnly = true,
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        shape = MaterialTheme.shapes.medium
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        shelves.forEach { shelf ->
+                            DropdownMenuItem(
+                                text = { Text(shelf.displayName) },
+                                onClick = {
+                                    onEvent(AddBookEvent.OnShelfChanged(shelf))
+                                    expanded = false
+                                }
+                            )
+                        }
                     }
                 }
-            }
 
             // Progress (only when shelf is Reading)
             if (uiState.shelf == ShelfType.READING) {

@@ -86,21 +86,9 @@ fun AppNavigation(
             ) { backStackEntry ->
                 val shelfArg = backStackEntry.arguments?.getString("shelf")
                 val viewModel: HomeViewModel = viewModel(
-                    factory = HomeViewModel.Factory(getBooksUseCase)
+                    factory = HomeViewModel.Factory(backStackEntry.savedStateHandle, getBooksUseCase)
                 )
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-                // Set initial shelf based on nav argument
-                LaunchedEffect(shelfArg) {
-                    if (shelfArg != null) {
-                        try {
-                            val shelf = ShelfType.valueOf(shelfArg)
-                            viewModel.onEvent(HomeEvent.OnShelfChanged(shelf))
-                        } catch (e: Exception) {
-                            // Ignored
-                        }
-                    }
-                }
 
                 HomeScreen(
                     uiState = uiState,
@@ -141,7 +129,8 @@ fun AppNavigation(
                     onApiPasswordChanged = {
                         apiPassword = it
                         themePreferences.apiPassword = it
-                    }
+                    },
+                    onTestConnection = { repository.testConnection() }
                 )
             }
 

@@ -219,40 +219,76 @@ fun BookDetailScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Shelf selection (Modern TabRow)
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                ) {
-                    ScrollableTabRow(
-                        selectedTabIndex = shelves.indexOf(book.shelf),
-                        edgePadding = 0.dp,
-                        modifier = Modifier.fillMaxWidth(),
-                        containerColor = Color.Transparent,
-                        divider = {},
-                        indicator = { tabPositions ->
-                            if (shelves.indexOf(book.shelf) != -1) {
-                                TabRowDefaults.SecondaryIndicator(
-                                    modifier = Modifier.tabIndicatorOffset(tabPositions[shelves.indexOf(book.shelf)]),
-                                    color = MaterialTheme.colorScheme.primary
+                // Shelf selection
+                if (uiState.isEditing) {
+                    var expanded by remember { mutableStateOf(false) }
+                    
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = book.shelf.displayName,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Shelf") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            shelves.forEach { shelf ->
+                                DropdownMenuItem(
+                                    text = { Text(shelf.displayName) },
+                                    onClick = {
+                                        onEvent(BookDetailEvent.OnMoveShelf(shelf))
+                                        expanded = false
+                                    }
                                 )
                             }
                         }
+                    }
+                } else {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     ) {
-                        shelves.forEachIndexed { index, shelf ->
-                            Tab(
-                                selected = book.shelf == shelf,
-                                onClick = { onEvent(BookDetailEvent.OnMoveShelf(shelf)) },
-                                text = { 
-                                    Text(
-                                        text = shelf.displayName,
-                                        style = MaterialTheme.typography.labelLarge
-                                    ) 
+                        TabRow(
+                            selectedTabIndex = shelves.indexOf(book.shelf),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                            containerColor = Color.Transparent,
+                            divider = {},
+                            indicator = { tabPositions ->
+                                val index = shelves.indexOf(book.shelf)
+                                if (index != -1 && index < tabPositions.size) {
+                                    TabRowDefaults.SecondaryIndicator(
+                                        modifier = Modifier.tabIndicatorOffset(tabPositions[index]),
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
                                 }
-                            )
+                            }
+                        ) {
+                            shelves.forEach { shelf ->
+                                Tab(
+                                    selected = book.shelf == shelf,
+                                    onClick = { onEvent(BookDetailEvent.OnMoveShelf(shelf)) },
+                                    text = { 
+                                        Text(
+                                            text = shelf.displayName,
+                                            style = MaterialTheme.typography.labelSmall
+                                        ) 
+                                    }
+                                )
+                            }
                         }
                     }
                 }

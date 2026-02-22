@@ -128,4 +128,19 @@ class KtorBookRepository(
             publishDate = fullPublishDate ?: publishedDate
         )
     }
+
+    override suspend fun testConnection(): Result<Boolean> {
+        return try {
+            val response = client.get("$baseUrl/api/public") {
+                parameter("limit", 1)
+            }
+            if (response.status.isSuccess()) {
+                Result.success(true)
+            } else {
+                Result.failure(Exception("Server returned ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
