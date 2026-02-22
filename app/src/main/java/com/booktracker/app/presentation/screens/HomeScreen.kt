@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.LibraryAdd
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
@@ -63,17 +64,30 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Search bar
-            OutlinedTextField(
-                value = uiState.searchQuery,
-                onValueChange = { onEvent(HomeEvent.OnSearchChanged(it)) },
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 2.dp,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                placeholder = { Text("Search books...") },
-                singleLine = true,
-                shape = MaterialTheme.shapes.medium
-            )
+                    .padding(horizontal = 16.dp)
+            ) {
+                OutlinedTextField(
+                    value = uiState.searchQuery,
+                    onValueChange = { onEvent(HomeEvent.OnSearchChanged(it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Search books...") },
+                    leadingIcon = {
+                        Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                    },
+                    singleLine = true,
+                    shape = MaterialTheme.shapes.large,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = MaterialTheme.colorScheme.surface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -133,8 +147,9 @@ fun HomeScreen(
                                 key = { _, book -> book.id }
                             ) { _, book ->
                                 Surface(
-                                    shape = MaterialTheme.shapes.medium,
-                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    shape = MaterialTheme.shapes.large,
+                                    color = MaterialTheme.colorScheme.surface,
+                                    shadowElevation = 1.dp,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Row(

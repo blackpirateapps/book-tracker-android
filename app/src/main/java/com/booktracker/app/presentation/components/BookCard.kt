@@ -23,10 +23,10 @@ fun BookCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    OutlinedCard(
+    Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.large
     ) {
         Row(
             modifier = Modifier
