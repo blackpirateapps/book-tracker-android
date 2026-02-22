@@ -3,7 +3,9 @@ package com.booktracker.app.data.repository
 import com.booktracker.app.data.preferences.ThemePreferences
 import com.booktracker.app.data.remote.dto.BookDto
 import com.booktracker.app.data.remote.dto.ImageLinksDto
+import com.booktracker.app.data.remote.dto.SearchBookDto
 import com.booktracker.app.domain.model.Book
+import com.booktracker.app.domain.model.SearchBook
 import com.booktracker.app.domain.model.ShelfType
 import com.booktracker.app.domain.repository.BookRepository
 import io.ktor.client.*
@@ -216,6 +218,45 @@ class KtorBookRepository(
             } else {
                 Result.failure(Exception("Server returned ${response.status}"))
             }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun searchBooks(query: String): Result<List<SearchBook>> {
+        return try {
+            val response: List<SearchBookDto> = client.get("$baseUrl/api/search") {
+                parameter("q", query)
+            }.body()
+            val results = response.mapNotNull { dto ->
+                val key = dto.key ?: return@mapNotNull null
+                SearchBook(
+                    id = key,
+                    title = dto.title ?: "Untitled",
+                    author = dto.author_name?.firstOrNull() ?: "Unknown",
+                    publishYear = dto.first_publish_year,
+                    coverUrl = dto.cover_i?.let { coverId ->
+                        "https://covers.openlibrary.org/b/id/${coverId}-M.jpg"
+                    }
+                )
+            }
+            Result.success(results)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun addBookByOlid(olid: String, shelfApiValue: String): Result<Boolean> {
+        val payload = buildJsonObject {
+            put("olid", olid)
+            put("shelf", shelfApiValue)
+        }
+        return try {
+            client.post("$baseUrl/api/books") {
+                contentType(ContentType.Application.Json)
+                setBody(ActionRequest(password, "add", payload))
+            }
+            Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)
         }

@@ -2,6 +2,7 @@ package com.booktracker.app.data.repository
 
 import com.booktracker.app.data.datasource.MockBookDataSource
 import com.booktracker.app.domain.model.Book
+import com.booktracker.app.domain.model.SearchBook
 import com.booktracker.app.domain.repository.BookRepository
 
 class MockBookRepository : BookRepository {
@@ -41,5 +42,13 @@ class MockBookRepository : BookRepository {
 
     override suspend fun fetchRawBooks(): Result<String> {
         return Result.success("[]")
+    }
+
+    override suspend fun searchBooks(query: String): Result<List<SearchBook>> {
+        return Result.success(emptyList())
+    }
+
+    override suspend fun addBookByOlid(olid: String, shelfApiValue: String): Result<Boolean> {
+        return Result.success(true)
     }
 }

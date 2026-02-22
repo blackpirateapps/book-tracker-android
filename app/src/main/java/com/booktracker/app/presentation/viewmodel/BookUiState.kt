@@ -1,6 +1,7 @@
 package com.booktracker.app.presentation.viewmodel
 
 import com.booktracker.app.domain.model.Book
+import com.booktracker.app.domain.model.SearchBook
 import com.booktracker.app.domain.model.ShelfType
 
 // ─── Home Screen State ───────────────────────────────────
@@ -10,6 +11,9 @@ data class HomeUiState(
     val filteredBooks: List<Book> = emptyList(),
     val selectedShelf: ShelfType = ShelfType.READING,
     val searchQuery: String = "",
+    val searchResults: List<SearchBook> = emptyList(),
+    val isSearching: Boolean = false,
+    val searchError: String? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
     val showAddSheet: Boolean = false
@@ -22,6 +26,7 @@ sealed class HomeEvent {
     data object OnAddBookClicked : HomeEvent()
     data object OnDismissAddSheet : HomeEvent()
     data object OnRefresh : HomeEvent()
+    data class OnAddFromSearch(val olid: String) : HomeEvent()
 }
 
 // ─── Book Detail Screen State ────────────────────────────

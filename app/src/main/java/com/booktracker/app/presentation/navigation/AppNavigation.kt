@@ -49,6 +49,8 @@ fun AppNavigation(
     val getBookByIdUseCase = remember { GetBookByIdUseCase(repository) }
     val addBookUseCase = remember { AddBookUseCase(repository) }
     val updateBookUseCase = remember { UpdateBookUseCase(repository) }
+    val searchBooksUseCase = remember { SearchBooksUseCase(repository) }
+    val addBookByOlidUseCase = remember { AddBookByOlidUseCase(repository) }
 
     Scaffold(
         bottomBar = {
@@ -87,7 +89,12 @@ fun AppNavigation(
             ) { backStackEntry ->
                 val shelfArg = backStackEntry.arguments?.getString("shelf")
                 val viewModel: HomeViewModel = viewModel(
-                    factory = HomeViewModel.Factory(backStackEntry.savedStateHandle, getBooksUseCase)
+                    factory = HomeViewModel.Factory(
+                        backStackEntry.savedStateHandle,
+                        getBooksUseCase,
+                        searchBooksUseCase,
+                        addBookByOlidUseCase
+                    )
                 )
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 

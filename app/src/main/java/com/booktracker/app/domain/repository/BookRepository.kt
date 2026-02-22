@@ -1,6 +1,7 @@
 package com.booktracker.app.domain.repository
 
 import com.booktracker.app.domain.model.Book
+import com.booktracker.app.domain.model.SearchBook
 
 interface BookRepository {
     suspend fun getBooks(): List<Book>
@@ -11,4 +12,6 @@ interface BookRepository {
     suspend fun testConnection(): Result<Boolean>
     suspend fun fetchRawPublic(limit: Int = 3, offset: Int = 0): Result<String>
     suspend fun fetchRawBooks(): Result<String>
+    suspend fun searchBooks(query: String): Result<List<SearchBook>>
+    suspend fun addBookByOlid(olid: String, shelfApiValue: String): Result<Boolean>
 }
