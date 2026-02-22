@@ -2,9 +2,9 @@ package com.booktracker.app.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
-val md_theme_light_primary = Color(0xFF1A73E8)
+val md_theme_light_primary = Color(0xFF007AFF)
 val md_theme_light_onPrimary = Color(0xFFFFFFFF)
-val md_theme_light_primaryContainer = Color(0xFFE3F2FD)
+val md_theme_light_primaryContainer = Color(0xFFE6F0FF)
 val md_theme_light_onPrimaryContainer = Color(0xFF0B2A4D)
 val md_theme_light_secondary = Color(0xFF667085)
 val md_theme_light_onSecondary = Color(0xFFFFFFFF)
@@ -18,7 +18,7 @@ val md_theme_light_error = Color(0xFFD32F2F)
 val md_theme_light_errorContainer = Color(0xFFF9DEDC)
 val md_theme_light_onError = Color(0xFFFFFFFF)
 val md_theme_light_onErrorContainer = Color(0xFF410E0B)
-val md_theme_light_background = Color(0xFFF5F6FA)
+val md_theme_light_background = Color(0xFFF2F2F7)
 val md_theme_light_onBackground = Color(0xFF111827)
 val md_theme_light_surface = Color(0xFFFFFFFF)
 val md_theme_light_onSurface = Color(0xFF111827)

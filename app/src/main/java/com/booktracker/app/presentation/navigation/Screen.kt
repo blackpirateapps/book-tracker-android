@@ -6,6 +6,7 @@ sealed class Screen(val route: String) {
             return if (shelf != null) "home?shelf=$shelf" else "home"
         }
     }
+    data object History : Screen("history")
     data object Settings : Screen("settings")
     data object BookDetail : Screen("book_detail/{bookId}") {
         fun createRoute(bookId: String): String = "book_detail/$bookId"

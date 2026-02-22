@@ -139,6 +139,10 @@ fun AppNavigation(
                 )
             }
 
+            composable(Screen.History.route) {
+                HistoryScreen()
+            }
+
             composable(
                 route = Screen.BookDetail.route,
                 arguments = listOf(navArgument("bookId") { type = NavType.StringType })

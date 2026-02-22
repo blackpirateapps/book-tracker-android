@@ -1,15 +1,15 @@
 package com.booktracker.app.presentation.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.NightsStay
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,9 +20,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+
+private val ScreenBg = Color(0xFFF2F2F7)
+private val CardBg = Color(0xFFFFFFFF)
+private val SectionLabel = Color(0xFF8E8E93)
+private val SubtleText = Color(0xFF8E8E93)
+private val PrimaryBlue = Color(0xFF007AFF)
+private val SuccessGreen = Color(0xFF34C759)
+private val DividerColor = Color(0xFFE5E5EA)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,27 +50,9 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     var isTesting by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<Boolean?>(null) }
-    var isFetchingRaw by remember { mutableStateOf(false) }
-    var rawResult by remember { mutableStateOf<String?>(null) }
-    var rawError by remember { mutableStateOf<String?>(null) }
-    var rawTitle by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Settings") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground
-                )
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = ScreenBg
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -71,268 +61,148 @@ fun SettingsScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            SectionHeader("API CONFIGURATION")
-            Surface(
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 2.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+            Text(
+                text = "Settings",
+                style = MaterialTheme.typography.displayLarge,
+                color = Color.Black
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                SectionLabelText("API CONFIGURATION")
+                CardContainer {
                     SettingRow(
                         icon = Icons.Default.Link,
                         title = "API Base URL",
                         subtitle = apiDomain.ifBlank { "https://notes.blackpiratex.com" }
                     )
-                    OutlinedTextField(
-                        value = apiDomain,
-                        onValueChange = {
-                            onApiDomainChanged(it)
-                            testResult = null
-                        },
-                        placeholder = { Text("https://notes.blackpiratex.com") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
+                    RowDivider()
                     SettingRow(
-                        icon = Icons.Default.Lock,
+                        icon = Icons.Default.Key,
                         title = "API Password",
-                        subtitle = if (apiPassword.isNotBlank()) "••••••••" else "Not set"
+                        subtitle = if (apiPassword.isNotBlank()) "••••••••" else "••••••••"
                     )
-                    OutlinedTextField(
-                        value = apiPassword,
-                        onValueChange = {
-                            onApiPasswordChanged(it)
-                            testResult = null
-                        },
-                        placeholder = { Text("********") },
-                        visualTransformation = PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                    RowDivider()
+                    SettingRow(
+                        icon = Icons.Default.Language,
+                        title = "Default Hostname",
+                        subtitle = deriveHostname(apiDomain)
                     )
-
-                    if (testResult != null) {
-                        val isOk = testResult == true
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.CloudDone,
-                                contentDescription = null,
-                                tint = if (isOk) Color(0xFF1DB954) else MaterialTheme.colorScheme.error
-                            )
-                            Text(
-                                text = if (isOk) "Connected" else "Connection failed",
-                                color = if (isOk) Color(0xFF1DB954) else MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
-
-                    Button(
-                        onClick = {
-                            isTesting = true
-                            testResult = null
-                            scope.launch {
-                                val result = onTestConnection()
-                                testResult = result.isSuccess
-                                isTesting = false
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !isTesting && apiDomain.isNotBlank()
-                    ) {
-                        if (isTesting) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text("Test Connection")
-                        }
-                    }
-
-                    OutlinedButton(
-                        onClick = onForceRefresh,
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = apiDomain.isNotBlank()
-                    ) {
-                        Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Force Refresh")
-                    }
                 }
-            }
 
-            SectionHeader("APPEARANCE")
-            Surface(
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 2.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                if (testResult == true) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.WbSunny,
+                            imageVector = Icons.Default.CheckCircle,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = SuccessGreen
                         )
-                        Column {
-                            Text(
-                                text = "Dark Mode",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "Toggle the application theme",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
-                    Switch(
-                        checked = isDarkModeEnabled,
-                        onCheckedChange = onToggleDarkMode
-                    )
-                }
-            }
-
-            SectionHeader("DEBUG")
-            Surface(
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 2.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            isFetchingRaw = true
-                            rawResult = null
-                            rawError = null
-                            rawTitle = "/api/public?limit=3&offset=0"
-                            scope.launch {
-                                val result = onFetchRawPublic(3, 0)
-                                if (result.isSuccess) {
-                                    rawResult = result.getOrNull()
-                                } else {
-                                    rawError = result.exceptionOrNull()?.message ?: "Unknown error"
-                                }
-                                isFetchingRaw = false
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !isFetchingRaw && apiDomain.isNotBlank()
-                    ) {
-                        if (isFetchingRaw) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text("Fetch Raw /api/public")
-                        }
-                    }
-
-                    OutlinedButton(
-                        onClick = {
-                            isFetchingRaw = true
-                            rawResult = null
-                            rawError = null
-                            rawTitle = "/api/books"
-                            scope.launch {
-                                val result = onFetchRawBooks()
-                                if (result.isSuccess) {
-                                    rawResult = result.getOrNull()
-                                } else {
-                                    rawError = result.exceptionOrNull()?.message ?: "Unknown error"
-                                }
-                                isFetchingRaw = false
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !isFetchingRaw && apiDomain.isNotBlank()
-                    ) {
-                        Text("Fetch Raw /api/books")
-                    }
-
-                    if (rawError != null) {
                         Text(
-                            text = rawError ?: "",
-                            color = MaterialTheme.colorScheme.error,
+                            text = "Connected",
+                            color = SuccessGreen,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
+                }
 
-                    if (rawResult != null) {
-                        Surface(
-                            shape = MaterialTheme.shapes.small,
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                if (rawTitle != null) {
-                                    Text(
-                                        text = rawTitle ?: "",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                Text(
-                                    text = rawResult ?: "",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .heightIn(min = 100.dp, max = 220.dp)
-                                        .verticalScroll(rememberScrollState()),
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
+                Button(
+                    onClick = {
+                        isTesting = true
+                        testResult = null
+                        scope.launch {
+                            val result = onTestConnection()
+                            testResult = result.isSuccess
+                            isTesting = false
                         }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(55.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryBlue,
+                        contentColor = Color.White
+                    ),
+                    enabled = !isTesting && apiDomain.isNotBlank()
+                ) {
+                    if (isTesting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Test Connection")
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                SectionLabelText("APPEARANCE")
+                CardContainer {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 14.dp, horizontal = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.NightsStay,
+                                contentDescription = null,
+                                tint = PrimaryBlue
+                            )
+                            Text(
+                                text = "Dark Mode",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                        Switch(
+                            checked = isDarkModeEnabled,
+                            onCheckedChange = onToggleDarkMode
+                        )
+                    }
+                }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                SectionLabelText("ABOUT")
+                CardContainer {
+                    InfoRow(label = "Version", value = "1.2.0")
+                    RowDivider()
+                    InfoRow(label = "Developer", value = "BlackPirate Apps")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
 
 @Composable
-private fun SectionHeader(title: String) {
+private fun CardContainer(content: @Composable ColumnScope.() -> Unit) {
+    Surface(
+        color = CardBg,
+        shape = RoundedCornerShape(16.dp),
+        shadowElevation = 1.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.fillMaxWidth(), content = content)
+    }
+}
+
+@Composable
+private fun SectionLabelText(text: String) {
     Text(
-        text = title,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        text = text,
+        color = SectionLabel,
+        style = MaterialTheme.typography.labelSmall
     )
 }
 
@@ -343,26 +213,57 @@ private fun SettingRow(
     subtitle: String
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 14.dp, horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary
+            tint = PrimaryBlue
         )
-        Column {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, style = MaterialTheme.typography.bodyLarge)
             Text(
                 text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.bodySmall,
+                color = SubtleText,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
+}
+
+@Composable
+private fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 14.dp, horizontal = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = label, style = MaterialTheme.typography.bodyLarge)
+        Text(text = value, style = MaterialTheme.typography.bodyMedium, color = SubtleText)
+    }
+}
+
+@Composable
+private fun RowDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(DividerColor)
+    )
+}
+
+private fun deriveHostname(domain: String): String {
+    val trimmed = domain.trim()
+    if (trimmed.isBlank()) return ""
+    val noScheme = trimmed.removePrefix("https://").removePrefix("http://")
+    return noScheme.substringBefore("/")
 }
