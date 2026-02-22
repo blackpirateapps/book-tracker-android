@@ -16,6 +16,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,11 +31,15 @@ fun SettingsScreen(
     apiPassword: String = "",
     onApiPasswordChanged: (String) -> Unit = {},
     onTestConnection: suspend () -> Result<Boolean> = { Result.success(true) },
-    onForceRefresh: () -> Unit = {}
+    onForceRefresh: () -> Unit = {},
+    onFetchRawPublic: suspend (Int, Int) -> Result<String> = { _, _ -> Result.success("[]") }
 ) {
     val scope = rememberCoroutineScope()
     var isTesting by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<Boolean?>(null) }
+    var isFetchingRaw by remember { mutableStateOf(false) }
+    var rawResult by remember { mutableStateOf<String?>(null) }
+    var rawError by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -171,6 +177,82 @@ fun SettingsScreen(
                             enabled = apiDomain.isNotBlank()
                         ) {
                             Text("Force Refresh")
+                        }
+                    }
+                }
+            }
+
+            // Debug Section
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "Debug",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                isFetchingRaw = true
+                                rawResult = null
+                                rawError = null
+                                scope.launch {
+                                    val result = onFetchRawPublic(3, 0)
+                                    if (result.isSuccess) {
+                                        rawResult = result.getOrNull()
+                                    } else {
+                                        rawError = result.exceptionOrNull()?.message ?: "Unknown error"
+                                    }
+                                    isFetchingRaw = false
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isFetchingRaw && apiDomain.isNotBlank()
+                        ) {
+                            if (isFetchingRaw) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text("Fetch Raw /api/public")
+                            }
+                        }
+
+                        if (rawError != null) {
+                            Text(
+                                text = rawError ?: "",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        if (rawResult != null) {
+                            Surface(
+                                shape = MaterialTheme.shapes.small,
+                                color = MaterialTheme.colorScheme.surface,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = rawResult ?: "",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(min = 100.dp, max = 220.dp)
+                                        .verticalScroll(rememberScrollState())
+                                        .padding(12.dp),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
                         }
                     }
                 }

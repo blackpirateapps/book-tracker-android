@@ -11,6 +11,7 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
@@ -183,6 +184,22 @@ class KtorBookRepository(
             }
             if (response.status.isSuccess()) {
                 Result.success(true)
+            } else {
+                Result.failure(Exception("Server returned ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun fetchRawPublic(limit: Int, offset: Int): Result<String> {
+        return try {
+            val response = client.get("$baseUrl/api/public") {
+                parameter("limit", limit)
+                parameter("offset", offset)
+            }
+            if (response.status.isSuccess()) {
+                Result.success(response.bodyAsText())
             } else {
                 Result.failure(Exception("Server returned ${response.status}"))
             }

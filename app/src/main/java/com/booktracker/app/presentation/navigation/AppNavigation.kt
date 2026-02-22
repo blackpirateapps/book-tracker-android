@@ -136,7 +136,10 @@ fun AppNavigation(
                         themePreferences.apiPassword = it
                     },
                     onTestConnection = { repository.testConnection() },
-                    onForceRefresh = { AppRefreshBus.trigger() }
+                    onForceRefresh = { AppRefreshBus.trigger() },
+                    onFetchRawPublic = { limit, offset ->
+                        repository.fetchRawPublic(limit, offset)
+                    }
                 )
             }
 

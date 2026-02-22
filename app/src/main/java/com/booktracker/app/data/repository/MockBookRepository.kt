@@ -34,4 +34,8 @@ class MockBookRepository : BookRepository {
     override suspend fun testConnection(): Result<Boolean> {
         return Result.success(true)
     }
+
+    override suspend fun fetchRawPublic(limit: Int, offset: Int): Result<String> {
+        return Result.success("[]")
+    }
 }

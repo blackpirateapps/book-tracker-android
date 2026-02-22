@@ -9,4 +9,5 @@ interface BookRepository {
     suspend fun updateBook(book: Book)
     suspend fun deleteBook(id: String)
     suspend fun testConnection(): Result<Boolean>
+    suspend fun fetchRawPublic(limit: Int = 3, offset: Int = 0): Result<String>
 }
