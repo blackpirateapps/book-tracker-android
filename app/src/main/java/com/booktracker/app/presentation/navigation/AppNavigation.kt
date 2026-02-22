@@ -24,7 +24,7 @@ import com.booktracker.app.domain.usecase.GetBookByIdUseCase
 import com.booktracker.app.domain.usecase.GetBooksUseCase
 import com.booktracker.app.domain.usecase.UpdateBookUseCase
 import com.booktracker.app.data.preferences.ThemePreferences
-import com.booktracker.app.data.repository.BookRepository
+import com.booktracker.app.domain.repository.BookRepository
 import com.booktracker.app.domain.usecase.*
 import com.booktracker.app.presentation.screens.*
 import com.booktracker.app.presentation.viewmodel.*
