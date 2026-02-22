@@ -21,7 +21,7 @@ import com.booktracker.app.presentation.navigation.Screen
 
 sealed class BottomNavItem(val title: String, val icon: ImageVector, val route: String) {
     data object Reading : BottomNavItem(ShelfType.READING.displayName, Icons.AutoMirrored.Filled.MenuBook, "home?shelf=${ShelfType.READING.name}")
-    data object ToRead : BottomNavItem(ShelfType.TO_READ.displayName, Icons.Default.Bookmark, "home?shelf=${ShelfType.TO_READ.name}")
+    data object ToRead : BottomNavItem(ShelfType.READING_LIST.displayName, Icons.Default.Bookmark, "home?shelf=${ShelfType.READING_LIST.name}")
     data object Read : BottomNavItem(ShelfType.READ.displayName, Icons.Default.CheckCircle, "home?shelf=${ShelfType.READ.name}")
     data object Settings : BottomNavItem("Settings", Icons.Default.Settings, Screen.Settings.route)
 }
