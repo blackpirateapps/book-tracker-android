@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Dashboard
@@ -250,7 +251,7 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    itemsIndexed(uiState.filteredBooks, key = { _, book -> book.id }) { _, book ->
+                    items(uiState.filteredBooks, key = { book -> book.id }) { book ->
                         BookCard(
                             book = book,
                             onClick = { onBookClick(book.id) }
