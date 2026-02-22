@@ -26,6 +26,10 @@ import com.booktracker.app.domain.usecase.UpdateBookUseCase
 import com.booktracker.app.data.preferences.ThemePreferences
 import com.booktracker.app.domain.repository.BookRepository
 import com.booktracker.app.domain.usecase.*
+import com.booktracker.app.presentation.components.AppBottomNavigation
+import com.booktracker.app.domain.model.ShelfType
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.material3.Scaffold
 import com.booktracker.app.presentation.screens.*
 import com.booktracker.app.presentation.viewmodel.*
 
@@ -45,78 +49,122 @@ fun AppNavigation(
     val addBookUseCase = remember { AddBookUseCase(repository) }
     val updateBookUseCase = remember { UpdateBookUseCase(repository) }
 
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Home.route,
-        modifier = modifier,
-        enterTransition = {
-            slideInHorizontally(tween(300)) { it } + fadeIn(tween(300))
+    Scaffold(
+        bottomBar = {
+            // Only show bottom bar on top level destinations
+            val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+            if (currentRoute?.startsWith("home") == true || currentRoute == Screen.Settings.route) {
+                AppBottomNavigation(navController = navController)
+            }
         },
-        exitTransition = {
-            slideOutHorizontally(tween(300)) { -it / 3 } + fadeOut(tween(150))
-        },
-        popEnterTransition = {
-            slideInHorizontally(tween(300)) { -it / 3 } + fadeIn(tween(300))
-        },
-        popExitTransition = {
-            slideOutHorizontally(tween(300)) { it } + fadeOut(tween(150))
-        }
-    ) {
-        composable(Screen.Home.route) {
-            val viewModel: HomeViewModel = viewModel(
-                factory = HomeViewModel.Factory(getBooksUseCase)
-            )
-            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        modifier = modifier
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Home.createRoute(ShelfType.READING.name), // Let's default to reading
+            modifier = Modifier.padding(innerPadding),
+            enterTransition = {
+                slideInHorizontally(tween(300)) { it } + fadeIn(tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(tween(300)) { -it / 3 } + fadeOut(tween(150))
+            },
+            popEnterTransition = {
+                slideInHorizontally(tween(300)) { -it / 3 } + fadeIn(tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(tween(300)) { it } + fadeOut(tween(150))
+            }
+        ) {
+            composable(
+                route = Screen.Home.route,
+                arguments = listOf(navArgument("shelf") { 
+                    type = NavType.StringType
+                    nullable = true 
+                    defaultValue = null
+                })
+            ) { backStackEntry ->
+                val shelfArg = backStackEntry.arguments?.getString("shelf")
+                val viewModel: HomeViewModel = viewModel(
+                    factory = HomeViewModel.Factory(getBooksUseCase)
+                )
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-            HomeScreen(
-                uiState = uiState,
-                onEvent = { event ->
-                    viewModel.onEvent(event)
-                },
-                onBookClick = { bookId ->
-                    navController.navigate(Screen.BookDetail.createRoute(bookId))
-                },
-                onSettingsClick = {
-                    navController.navigate(Screen.Settings.route)
+                // Set initial shelf based on nav argument
+                LaunchedEffect(shelfArg) {
+                    if (shelfArg != null) {
+                        try {
+                            val shelf = ShelfType.valueOf(shelfArg)
+                            viewModel.onEvent(HomeEvent.OnShelfChanged(shelf))
+                        } catch (e: Exception) {
+                            // Ignored
+                        }
+                    }
                 }
-            )
 
-            // Add Book Modal Sheet
-            if (uiState.showAddSheet) {
-                AddBookDialog(
-                    addBookUseCase = addBookUseCase,
-                    onDismiss = { viewModel.onEvent(HomeEvent.OnDismissAddSheet) }
+                HomeScreen(
+                    uiState = uiState,
+                    onEvent = { event ->
+                        viewModel.onEvent(event)
+                    },
+                    onBookClick = { bookId ->
+                        navController.navigate(Screen.BookDetail.createRoute(bookId))
+                    },
+                    onSettingsClick = {
+                        navController.navigate(Screen.Settings.route)
+                    }
+                )
+
+                // Add Book Modal Sheet
+                if (uiState.showAddSheet) {
+                    AddBookDialog(
+                        addBookUseCase = addBookUseCase,
+                        onDismiss = { viewModel.onEvent(HomeEvent.OnDismissAddSheet) }
+                    )
+                }
+            }
+
+            composable(Screen.Settings.route) {
+                var apiDomain by remember { mutableStateOf(themePreferences.apiDomain) }
+                var apiPassword by remember { mutableStateOf(themePreferences.apiPassword) }
+
+                SettingsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    isDarkModeEnabled = isDarkMode,
+                    onToggleDarkMode = onThemeChanged,
+                    apiDomain = apiDomain,
+                    onApiDomainChanged = {
+                        apiDomain = it
+                        themePreferences.apiDomain = it
+                    },
+                    apiPassword = apiPassword,
+                    onApiPasswordChanged = {
+                        apiPassword = it
+                        themePreferences.apiPassword = it
+                    }
                 )
             }
-        }
 
-        composable(Screen.Settings.route) {
-            SettingsScreen(
-                onNavigateBack = { navController.popBackStack() },
-                isDarkModeEnabled = isDarkMode,
-                onToggleDarkMode = onThemeChanged
-            )
-        }
-
-        composable(
-            route = Screen.BookDetail.route,
-            arguments = listOf(navArgument("bookId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val bookId = backStackEntry.arguments?.getString("bookId") ?: return@composable
-            val viewModel: BookDetailViewModel = viewModel(
-                factory = BookDetailViewModel.Factory(
-                    bookId = bookId,
-                    getBookByIdUseCase = getBookByIdUseCase,
-                    updateBookUseCase = updateBookUseCase
+            composable(
+                route = Screen.BookDetail.route,
+                arguments = listOf(navArgument("bookId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val bookId = backStackEntry.arguments?.getString("bookId") ?: return@composable
+                val viewModel: BookDetailViewModel = viewModel(
+                    factory = BookDetailViewModel.Factory(
+                        bookId = bookId,
+                        getBookByIdUseCase = getBookByIdUseCase,
+                        updateBookUseCase = updateBookUseCase
+                    )
                 )
-            )
-            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-            BookDetailScreen(
-                uiState = uiState,
-                onEvent = viewModel::onEvent,
-                onNavigateBack = { navController.popBackStack() }
-            )
+                BookDetailScreen(
+                    uiState = uiState,
+                    onEvent = viewModel::onEvent,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
         }
     }
 }

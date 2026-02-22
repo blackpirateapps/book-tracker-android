@@ -30,7 +30,10 @@ data class BookDetailUiState(
     val book: Book? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val navigateBack: Boolean = false
+    val navigateBack: Boolean = false,
+    val isEditing: Boolean = false,
+    val editTitle: String = "",
+    val editAuthor: String = ""
 )
 
 sealed class BookDetailEvent {
@@ -39,6 +42,11 @@ sealed class BookDetailEvent {
     data object OnMarkAsRead : BookDetailEvent()
     data object OnMarkAsAbandoned : BookDetailEvent()
     data object OnBackClicked : BookDetailEvent()
+    data object OnEditClicked : BookDetailEvent()
+    data object OnSaveClicked : BookDetailEvent()
+    data object OnCancelEditClicked : BookDetailEvent()
+    data class OnEditTitleChanged(val title: String) : BookDetailEvent()
+    data class OnEditAuthorChanged(val author: String) : BookDetailEvent()
 }
 
 // ─── Add Book Screen State ───────────────────────────────

@@ -39,13 +39,34 @@ fun BookDetailScreen(
         if (uiState.navigateBack) onNavigateBack()
     }
 
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { },
+                title = { Text(if (uiState.isEditing) "Edit Book" else "") },
                 navigationIcon = {
-                    IconButton(onClick = { onEvent(BookDetailEvent.OnBackClicked) }) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    if (uiState.isEditing) {
+                        IconButton(onClick = { onEvent(BookDetailEvent.OnCancelEditClicked) }) {
+                            Icon(imageVector = Icons.Default.Close, contentDescription = "Cancel")
+                        }
+                    } else {
+                        IconButton(onClick = { onEvent(BookDetailEvent.OnBackClicked) }) {
+                            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    }
+                },
+                actions = {
+                    if (uiState.isEditing) {
+                        IconButton(onClick = { onEvent(BookDetailEvent.OnSaveClicked) }) {
+                            Icon(imageVector = Icons.Default.Check, contentDescription = "Save")
+                        }
+                    } else {
+                        IconButton(onClick = { onEvent(BookDetailEvent.OnEditClicked) }) {
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -96,22 +117,40 @@ fun BookDetailScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Title & Author
-                Text(
-                    text = book.title,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold
-                )
+                if (uiState.isEditing) {
+                    OutlinedTextField(
+                        value = uiState.editTitle,
+                        onValueChange = { onEvent(BookDetailEvent.OnEditTitleChanged(it)) },
+                        label = { Text("Title") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = uiState.editAuthor,
+                        onValueChange = { onEvent(BookDetailEvent.OnEditAuthorChanged(it)) },
+                        label = { Text("Author") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                } else {
+                    Text(
+                        text = book.title,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
-                Text(
-                    text = book.author,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+                    Text(
+                        text = book.author,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(32.dp))
 

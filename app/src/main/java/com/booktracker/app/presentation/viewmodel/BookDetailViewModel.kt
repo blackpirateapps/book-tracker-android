@@ -34,6 +34,32 @@ class BookDetailViewModel(
             is BookDetailEvent.OnBackClicked -> {
                 _uiState.update { it.copy(navigateBack = true) }
             }
+            is BookDetailEvent.OnEditClicked -> {
+                val book = _uiState.value.book
+                if (book != null) {
+                    _uiState.update { it.copy(isEditing = true, editTitle = book.title, editAuthor = book.author) }
+                }
+            }
+            is BookDetailEvent.OnCancelEditClicked -> {
+                _uiState.update { it.copy(isEditing = false) }
+            }
+            is BookDetailEvent.OnSaveClicked -> {
+                val state = _uiState.value
+                val book = state.book
+                if (book != null) {
+                    val updatedBook = book.copy(title = state.editTitle, author = state.editAuthor)
+                    viewModelScope.launch {
+                        updateBookUseCase(updatedBook)
+                        _uiState.update { it.copy(book = updatedBook, isEditing = false) }
+                    }
+                }
+            }
+            is BookDetailEvent.OnEditTitleChanged -> {
+                _uiState.update { it.copy(editTitle = event.title) }
+            }
+            is BookDetailEvent.OnEditAuthorChanged -> {
+                _uiState.update { it.copy(editAuthor = event.author) }
+            }
         }
     }
 
@@ -50,10 +76,16 @@ class BookDetailViewModel(
     }
 
     private fun updateProgress(progress: Int) {
-        val book = _uiState.value.book ?: return
+        val state = _uiState.value
+        val book = state.book ?: return
+        
+        // If we're editing, we just update the book reference object (but wait, we need to bind it separately if we want to not save immediately? 
+        // Oh the slider is bound to the actual progress. So the actual progress will be changed live.
         val updated = book.copy(progress = progress.coerceIn(0, 100))
         viewModelScope.launch {
-            updateBookUseCase(updated)
+            if (!state.isEditing) {
+                updateBookUseCase(updated)
+            }
             _uiState.update { it.copy(book = updated) }
         }
     }
@@ -67,7 +99,9 @@ class BookDetailViewModel(
         }
         val updated = book.copy(shelf = shelf, progress = progress)
         viewModelScope.launch {
-            updateBookUseCase(updated)
+            if (!_uiState.value.isEditing) {
+                updateBookUseCase(updated)
+            }
             _uiState.update { it.copy(book = updated) }
         }
     }
