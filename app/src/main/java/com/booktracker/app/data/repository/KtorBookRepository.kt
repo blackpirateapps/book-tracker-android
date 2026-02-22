@@ -2,7 +2,6 @@ package com.booktracker.app.data.repository
 
 import com.booktracker.app.data.preferences.ThemePreferences
 import com.booktracker.app.data.remote.dto.BookDto
-import com.booktracker.app.data.remote.dto.BookDto
 import com.booktracker.app.domain.model.Book
 import com.booktracker.app.domain.model.ShelfType
 import com.booktracker.app.domain.repository.BookRepository
