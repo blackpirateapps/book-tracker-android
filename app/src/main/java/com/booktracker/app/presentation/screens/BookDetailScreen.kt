@@ -23,7 +23,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.material.icons.filled.*
 import coil.compose.AsyncImage
 import com.booktracker.app.domain.model.ShelfType
 import com.booktracker.app.presentation.viewmodel.BookDetailEvent
@@ -42,34 +45,34 @@ fun BookDetailScreen(
         if (uiState.navigateBack) onNavigateBack()
     }
 
+    val scrollState = rememberScrollState()
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (uiState.isEditing) "Edit Book" else "") },
+                title = { },
                 navigationIcon = {
-                    if (uiState.isEditing) {
-                        IconButton(onClick = { onEvent(BookDetailEvent.OnCancelEditClicked) }) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = "Cancel")
-                        }
-                    } else {
-                        IconButton(onClick = { onEvent(BookDetailEvent.OnBackClicked) }) {
-                            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                        }
+                    FilledTonalIconButton(
+                        onClick = { onEvent(BookDetailEvent.OnBackClicked) },
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)
+                        )
+                    ) {
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    if (uiState.isEditing) {
-                        IconButton(onClick = { onEvent(BookDetailEvent.OnSaveClicked) }) {
-                            Icon(imageVector = Icons.Default.Check, contentDescription = "Save")
-                        }
-                    } else {
-                        IconButton(onClick = { onEvent(BookDetailEvent.OnEditClicked) }) {
-                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
-                        }
+                    FilledTonalIconButton(
+                        onClick = { onEvent(BookDetailEvent.OnEditClicked) },
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)
+                        )
+                    ) {
+                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = Color.Transparent
                 )
             )
         },
@@ -89,84 +92,166 @@ fun BookDetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp),
+                    .verticalScroll(scrollState),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Cover image with Material elevation
-                ElevatedCard(
+                // Hero Cover Section
+                Box(
                     modifier = Modifier
-                        .width(160.dp)
-                        .height(240.dp),
-                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp)
+                        .fillMaxWidth()
+                        .height(400.dp),
+                    contentAlignment = Alignment.BottomCenter
                 ) {
-                    AsyncImage(
-                        model = book.coverUrl,
-                        contentDescription = "${book.title} cover",
-                        contentScale = ContentScale.Crop,
+                    // Background placeholder for blur effect
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.surfaceVariant,
+                                        MaterialTheme.colorScheme.background
+                                    )
+                                )
+                            )
+                    )
+
+                    AsyncImage(
+                        model = book.coverUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .width(200.dp)
+                            .height(300.dp)
+                            .padding(bottom = 24.dp)
+                            .clip(RoundedCornerShape(12.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (uiState.isEditing) {
+                        OutlinedTextField(
+                            value = uiState.editTitle,
+                            onValueChange = { onEvent(BookDetailEvent.OnEditTitleChanged(it)) },
+                            label = { Text("Title") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = uiState.editAuthor,
+                            onValueChange = { onEvent(BookDetailEvent.OnEditAuthorChanged(it)) },
+                            label = { Text("Author") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    } else {
+                        Text(
+                            text = book.title,
+                            style = MaterialTheme.typography.displaySmall,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.ExtraBold
+                        )
 
-                // Title & Author
-                if (uiState.isEditing) {
-                    OutlinedTextField(
-                        value = uiState.editTitle,
-                        onValueChange = { onEvent(BookDetailEvent.OnEditTitleChanged(it)) },
-                        label = { Text("Title") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = uiState.editAuthor,
-                        onValueChange = { onEvent(BookDetailEvent.OnEditAuthorChanged(it)) },
-                        label = { Text("Author") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                } else {
-                    Text(
-                        text = book.title,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold
-                    )
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = book.author,
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
 
-                    Text(
-                        text = book.author,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
+                // Metadata Grid
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    MetadataCard(
+                        icon = Icons.Default.Description,
+                        label = "Pages",
+                        value = book.pageCount?.toString() ?: "---",
+                        modifier = Modifier.weight(1f)
+                    )
+                    MetadataCard(
+                        icon = Icons.Default.LibraryBooks,
+                        label = "Medium",
+                        value = book.readingMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    MetadataCard(
+                        icon = Icons.Default.CalendarToday,
+                        label = "Started",
+                        value = book.startedOn ?: "---",
+                        modifier = Modifier.weight(1f)
+                    )
+                    MetadataCard(
+                        icon = Icons.Default.EventAvailable,
+                        label = "Finished",
+                        value = book.finishedOn ?: "---",
+                        modifier = Modifier.weight(1f)
                     )
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Shelf selection (Filter Chips)
-                ScrollableTabRow(
-                    selectedTabIndex = shelves.indexOf(book.shelf),
-                    edgePadding = 0.dp,
-                    modifier = Modifier.fillMaxWidth(),
-                    containerColor = Color.Transparent,
-                    divider = {}
+                // Shelf selection (Modern TabRow)
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                 ) {
-                    shelves.forEachIndexed { index, shelf ->
-                        Tab(
-                            selected = book.shelf == shelf,
-                            onClick = { onEvent(BookDetailEvent.OnMoveShelf(shelf)) },
-                            text = { Text(shelf.displayName) }
-                        )
+                    ScrollableTabRow(
+                        selectedTabIndex = shelves.indexOf(book.shelf),
+                        edgePadding = 0.dp,
+                        modifier = Modifier.fillMaxWidth(),
+                        containerColor = Color.Transparent,
+                        divider = {},
+                        indicator = { tabPositions ->
+                            if (shelves.indexOf(book.shelf) != -1) {
+                                TabRowDefaults.SecondaryIndicator(
+                                    modifier = Modifier.tabIndicatorOffset(tabPositions[shelves.indexOf(book.shelf)]),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    ) {
+                        shelves.forEachIndexed { index, shelf ->
+                            Tab(
+                                selected = book.shelf == shelf,
+                                onClick = { onEvent(BookDetailEvent.OnMoveShelf(shelf)) },
+                                text = { 
+                                    Text(
+                                        text = shelf.displayName,
+                                        style = MaterialTheme.typography.labelLarge
+                                    ) 
+                                }
+                            )
+                        }
                     }
                 }
 
@@ -181,48 +266,46 @@ fun BookDetailScreen(
                     label = "progressSection"
                 ) { showProgress ->
                     if (showProgress) {
-                        OutlinedCard(
-                            modifier = Modifier.fillMaxWidth()
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp),
+                            shape = RoundedCornerShape(24.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
                         ) {
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
+                                    .padding(24.dp),
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                Text(
-                                    text = "Reading Progress",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Current Progress",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "${book.progress}%",
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
+                                }
 
                                 LinearProgressIndicator(
                                     progress = { book.progress / 100f },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(8.dp)
-                                        .clip(MaterialTheme.shapes.small),
+                                        .height(12.dp)
+                                        .clip(RoundedCornerShape(6.dp)),
                                     color = MaterialTheme.colorScheme.primary,
-                                    trackColor = MaterialTheme.colorScheme.primaryContainer
+                                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                                 )
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.Bottom
-                                ) {
-                                    Text(
-                                        text = "${book.progress}%",
-                                        style = MaterialTheme.typography.headlineSmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = "completed",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
 
                                 Slider(
                                     value = book.progress / 100f,
@@ -232,7 +315,12 @@ fun BookDetailScreen(
                                                 (newValue * 100).toInt()
                                             )
                                         )
-                                    }
+                                    },
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = MaterialTheme.colorScheme.primary,
+                                        activeTrackColor = Color.Transparent,
+                                        inactiveTrackColor = Color.Transparent
+                                    )
                                 )
                             }
                         }
@@ -241,39 +329,109 @@ fun BookDetailScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Description section
+                if (!book.description.isNullOrBlank()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "About this book",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = book.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 22.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
 
                 // Action buttons
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     if (book.shelf != ShelfType.READ) {
                         Button(
                             onClick = { onEvent(BookDetailEvent.OnMarkAsRead) },
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(16.dp)
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(16.dp)
                         ) {
+                            Icon(imageVector = Icons.Default.Check, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text("Mark as Read")
                         }
                     }
 
                     if (book.shelf != ShelfType.ABANDONED) {
-                        OutlinedButton(
+                        FilledTonalButton(
                             onClick = { onEvent(BookDetailEvent.OnMarkAsAbandoned) },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.outlinedButtonColors(
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.filledTonalButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error
-                            ),
-                            contentPadding = PaddingValues(16.dp)
+                            )
                         ) {
+                            Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text("Mark as Abandoned")
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(64.dp))
             }
+        }
+    }
+}
+
+@Composable
+fun MetadataCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
         }
     }
 }

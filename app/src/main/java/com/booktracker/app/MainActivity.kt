@@ -14,19 +14,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.booktracker.app.data.preferences.ThemePreferences
 import com.booktracker.app.data.repository.MockBookRepository
+import com.booktracker.app.data.repository.KtorBookRepository
 import com.booktracker.app.presentation.navigation.AppNavigation
 import com.booktracker.app.presentation.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
-
-    // Repository would be injected with Hilt later
-    private val repository = MockBookRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         val themePreferences = ThemePreferences(this)
+        // Repository would be injected with Hilt later
+        val repository = KtorBookRepository(themePreferences)
 
         setContent {
             var isDarkMode by remember { mutableStateOf(themePreferences.isDarkModeEnabled) }
