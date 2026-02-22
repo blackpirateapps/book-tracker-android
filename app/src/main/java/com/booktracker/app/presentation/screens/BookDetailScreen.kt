@@ -151,7 +151,6 @@ fun BookDetailScreen(
                 ) { showProgress ->
                     if (showProgress) {
                         Column(
-                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(colors.surface)
