@@ -5,7 +5,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -14,13 +13,7 @@ import androidx.compose.ui.unit.dp
 fun HistoryScreen() {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("History") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground
-                )
-            )
+            TopAppBar(title = { Text("History") })
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
