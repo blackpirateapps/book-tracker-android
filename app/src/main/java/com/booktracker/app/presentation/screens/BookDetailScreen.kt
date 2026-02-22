@@ -6,142 +6,134 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.booktracker.app.domain.model.ShelfType
-import com.booktracker.app.presentation.components.*
-import com.booktracker.app.presentation.theme.IOSTheme
 import com.booktracker.app.presentation.viewmodel.BookDetailEvent
 import com.booktracker.app.presentation.viewmodel.BookDetailUiState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookDetailScreen(
     uiState: BookDetailUiState,
     onEvent: (BookDetailEvent) -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    val colors = IOSTheme.colors
-    val typography = IOSTheme.typography
-    val shapes = IOSTheme.shapes
-    val spacing = IOSTheme.spacing
-    val dimensions = IOSTheme.dimensions
-
     val shelves = remember { ShelfType.entries.toList() }
-    val shelfLabels = remember { shelves.map { it.displayName } }
 
     LaunchedEffect(uiState.navigateBack) {
         if (uiState.navigateBack) onNavigateBack()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
-            .statusBarsPadding()
-    ) {
-        // Inline back bar only (no large title here)
-        IOSNavigationBar(
-            title = "",
-            showBackButton = true,
-            onBackClick = { onEvent(BookDetailEvent.OnBackClicked) }
-        )
-
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { },
+                navigationIcon = {
+                    IconButton(onClick = { onEvent(BookDetailEvent.OnBackClicked) }) {
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+        modifier = Modifier.fillMaxSize()
+    ) { paddingValues ->
         if (uiState.isLoading) {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
-                BasicText(
-                    text = "Loading...",
-                    style = typography.body.copy(color = colors.secondaryLabel)
-                )
+                CircularProgressIndicator()
             }
         } else {
-            val book = uiState.book ?: return
+            val book = uiState.book ?: return@Scaffold
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = spacing.md),
+                    .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(spacing.sm))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Cover image with book shadow
-                Box(
+                // Cover image with Material elevation
+                ElevatedCard(
                     modifier = Modifier
-                        .shadow(
-                            elevation = 4.dp,
-                            shape = shapes.cover,
-                            ambientColor = Color.Black.copy(alpha = 0.05f),
-                            spotColor = Color.Black.copy(alpha = 0.1f)
-                        )
-                        .clip(shapes.cover)
+                        .width(160.dp)
+                        .height(240.dp),
+                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp)
                 ) {
                     AsyncImage(
                         model = book.coverUrl,
                         contentDescription = "${book.title} cover",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .width(dimensions.detailCoverWidth)
-                            .height(dimensions.detailCoverHeight)
-                            .background(colors.fill)
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(spacing.lg))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                // Title & Author (centered, prominent)
-                BasicText(
+                // Title & Author
+                Text(
                     text = book.title,
-                    style = typography.title1.copy(
-                        color = colors.label,
-                        textAlign = TextAlign.Center
-                    )
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.height(spacing.xs))
+                Spacer(modifier = Modifier.height(4.dp))
 
-                BasicText(
+                Text(
                     text = book.author,
-                    style = typography.callout.copy(
-                        color = colors.secondaryLabel,
-                        textAlign = TextAlign.Center
-                    )
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(spacing.xl))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // Shelf segmented control
-                val selectedIndex = remember(book.shelf) {
-                    shelves.indexOf(book.shelf)
-                }
-                IOSSegmentedControl(
-                    items = shelfLabels,
-                    selectedIndex = selectedIndex,
-                    onItemSelected = { index ->
-                        onEvent(BookDetailEvent.OnMoveShelf(shelves[index]))
+                // Shelf selection (Filter Chips)
+                ScrollableTabRow(
+                    selectedTabIndex = shelves.indexOf(book.shelf),
+                    edgePadding = 0.dp,
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = Color.Transparent,
+                    divider = {}
+                ) {
+                    shelves.forEachIndexed { index, shelf ->
+                        Tab(
+                            selected = book.shelf == shelf,
+                            onClick = { onEvent(BookDetailEvent.OnMoveShelf(shelf)) },
+                            text = { Text(shelf.displayName) }
+                        )
                     }
-                )
+                }
 
-                Spacer(modifier = Modifier.height(spacing.lg))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // Progress section (only when Reading)
+                // Progress section
                 AnimatedContent(
                     targetState = book.shelf == ShelfType.READING,
                     transitionSpec = {
@@ -150,95 +142,98 @@ fun BookDetailScreen(
                     label = "progressSection"
                 ) { showProgress ->
                     if (showProgress) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(colors.surface)
-                                .padding(vertical = spacing.md),
-                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                        OutlinedCard(
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            BasicText(
-                                text = "Reading Progress",
-                                style = typography.headline.copy(color = colors.label)
-                            )
-
-                            IOSProgressBar(
-                                progress = book.progress / 100f,
-                                height = 6.dp
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.Bottom
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                BasicText(
-                                    text = "${book.progress}%",
-                                    style = typography.title2.copy(
-                                        color = colors.primary,
+                                Text(
+                                    text = "Reading Progress",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+
+                                LinearProgressIndicator(
+                                    progress = { book.progress / 100f },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(8.dp)
+                                        .clip(MaterialTheme.shapes.small),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    trackColor = MaterialTheme.colorScheme.primaryContainer
+                                )
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    Text(
+                                        text = "${book.progress}%",
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Bold
                                     )
-                                )
-                                BasicText(
-                                    text = "completed",
-                                    style = typography.subheadline.copy(
-                                        color = colors.secondaryLabel
-                                    )
-                                )
-                            }
-
-                            IOSSlider(
-                                value = book.progress / 100f,
-                                onValueChange = { newValue ->
-                                    onEvent(
-                                        BookDetailEvent.OnProgressChanged(
-                                            (newValue * 100).toInt()
-                                        )
+                                    Text(
+                                        text = "completed",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                            )
+
+                                Slider(
+                                    value = book.progress / 100f,
+                                    onValueChange = { newValue ->
+                                        onEvent(
+                                            BookDetailEvent.OnProgressChanged(
+                                                (newValue * 100).toInt()
+                                            )
+                                        )
+                                    }
+                                )
+                            }
                         }
                     } else {
                         Spacer(modifier = Modifier.height(0.dp))
                     }
                 }
 
-                Spacer(modifier = Modifier.height(spacing.md))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 // Action buttons
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(colors.surface)
-                        .padding(vertical = spacing.md),
-                    verticalArrangement = Arrangement.spacedBy(spacing.sm)
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    BasicText(
-                        text = "Actions",
-                        style = typography.headline.copy(color = colors.label)
-                    )
-
-                    Spacer(modifier = Modifier.height(spacing.xs))
-
                     if (book.shelf != ShelfType.READ) {
-                        IOSButton(
-                            text = "Mark as Read",
+                        Button(
                             onClick = { onEvent(BookDetailEvent.OnMarkAsRead) },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(16.dp)
+                        ) {
+                            Text("Mark as Read")
+                        }
                     }
 
                     if (book.shelf != ShelfType.ABANDONED) {
-                        IOSButton(
-                            text = "Mark as Abandoned",
+                        OutlinedButton(
                             onClick = { onEvent(BookDetailEvent.OnMarkAsAbandoned) },
-                            isDestructive = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            contentPadding = PaddingValues(16.dp)
+                        ) {
+                            Text("Mark as Abandoned")
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(spacing.xxl))
+                Spacer(modifier = Modifier.height(48.dp))
             }
         }
     }

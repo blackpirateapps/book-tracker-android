@@ -23,15 +23,18 @@ import com.booktracker.app.domain.usecase.AddBookUseCase
 import com.booktracker.app.domain.usecase.GetBookByIdUseCase
 import com.booktracker.app.domain.usecase.GetBooksUseCase
 import com.booktracker.app.domain.usecase.UpdateBookUseCase
-import com.booktracker.app.domain.repository.BookRepository
-import com.booktracker.app.presentation.screens.AddBookScreen
-import com.booktracker.app.presentation.screens.BookDetailScreen
-import com.booktracker.app.presentation.screens.HomeScreen
+import com.booktracker.app.data.preferences.ThemePreferences
+import com.booktracker.app.data.repository.BookRepository
+import com.booktracker.app.domain.usecase.*
+import com.booktracker.app.presentation.screens.*
 import com.booktracker.app.presentation.viewmodel.*
 
 @Composable
 fun AppNavigation(
     repository: BookRepository,
+    themePreferences: ThemePreferences,
+    isDarkMode: Boolean,
+    onThemeChanged: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
@@ -72,6 +75,9 @@ fun AppNavigation(
                 },
                 onBookClick = { bookId ->
                     navController.navigate(Screen.BookDetail.createRoute(bookId))
+                },
+                onSettingsClick = {
+                    navController.navigate(Screen.Settings.route)
                 }
             )
 
@@ -82,6 +88,14 @@ fun AppNavigation(
                     onDismiss = { viewModel.onEvent(HomeEvent.OnDismissAddSheet) }
                 )
             }
+        }
+
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                isDarkModeEnabled = isDarkMode,
+                onToggleDarkMode = onThemeChanged
+            )
         }
 
         composable(
@@ -126,21 +140,14 @@ private fun AddBookDialog(
     ) {
         Box(
             modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter
+                .fillMaxWidth()
+                .fillMaxHeight(0.9f)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.92f)
-                    .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
-            ) {
-                AddBookScreen(
-                    uiState = uiState,
-                    onEvent = viewModel::onEvent,
-                    onDismiss = onDismiss
-                )
-            }
+            AddBookScreen(
+                uiState = uiState,
+                onEvent = viewModel::onEvent,
+                onDismiss = onDismiss
+            )
         }
     }
 }

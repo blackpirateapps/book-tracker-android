@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import com.booktracker.app.data.repository.MockBookRepository
 import com.booktracker.app.presentation.navigation.AppNavigation
-import com.booktracker.app.presentation.theme.IOSTheme
+import com.booktracker.app.presentation.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
 

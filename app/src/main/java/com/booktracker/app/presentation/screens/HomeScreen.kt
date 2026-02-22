@@ -2,75 +2,96 @@ package com.booktracker.app.presentation.screens
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.BasicText
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.booktracker.app.domain.model.ShelfType
-import com.booktracker.app.presentation.components.*
-import com.booktracker.app.presentation.theme.IOSTheme
+import com.booktracker.app.presentation.components.BookCard
 import com.booktracker.app.presentation.viewmodel.HomeEvent
 import com.booktracker.app.presentation.viewmodel.HomeUiState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
     onEvent: (HomeEvent) -> Unit,
-    onBookClick: (String) -> Unit
+    onBookClick: (String) -> Unit,
+    onSettingsClick: () -> Unit
 ) {
-    val colors = IOSTheme.colors
-    val spacing = IOSTheme.spacing
     val shelves = remember { ShelfType.entries.toList() }
-    val shelfLabels = remember { shelves.map { it.displayName } }
-    val selectedIndex = remember(uiState.selectedShelf) {
-        shelves.indexOf(uiState.selectedShelf)
-    }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("My Books") },
+                actions = {
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
+                )
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { onEvent(HomeEvent.OnAddBookClicked) },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Book")
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(colors.background)
-                .statusBarsPadding()
+                .padding(paddingValues)
         ) {
-            // Navigation bar with large title
-            IOSNavigationBar(
-                title = "My Books"
-            )
-
             // Search bar
-            IOSSearchBar(
-                query = uiState.searchQuery,
-                onQueryChange = { onEvent(HomeEvent.OnSearchChanged(it)) },
-                modifier = Modifier.padding(horizontal = spacing.md)
+            OutlinedTextField(
+                value = uiState.searchQuery,
+                onValueChange = { onEvent(HomeEvent.OnSearchChanged(it)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                placeholder = { Text("Search books...") },
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Segmented control
-            IOSSegmentedControl(
-                items = shelfLabels,
-                selectedIndex = selectedIndex,
-                onItemSelected = { index ->
-                    onEvent(HomeEvent.OnShelfChanged(shelves[index]))
-                },
-                modifier = Modifier.padding(horizontal = spacing.md)
-            )
+            // Filter Chips
+            ScrollableTabRow(
+                selectedTabIndex = shelves.indexOf(uiState.selectedShelf),
+                edgePadding = 16.dp,
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = Color.Transparent,
+                divider = {}
+            ) {
+                shelves.forEachIndexed { index, shelf ->
+                    Tab(
+                        selected = uiState.selectedShelf == shelf,
+                        onClick = { onEvent(HomeEvent.OnShelfChanged(shelf)) },
+                        text = { Text(shelf.displayName) }
+                    )
+                }
+            }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Book list
             Crossfade(
@@ -83,48 +104,45 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        BasicText(
-                            text = "Loading...",
-                            style = IOSTheme.typography.body.copy(color = colors.secondaryLabel)
-                        )
+                        CircularProgressIndicator()
                     }
                 } else if (uiState.filteredBooks.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(spacing.xl),
+                            .padding(32.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(spacing.sm)
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            BasicText(
+                            Text(
                                 text = "📚",
-                                style = IOSTheme.typography.largeTitle.copy(
-                                    fontSize = 48.sp
-                                )
+                                style = MaterialTheme.typography.displayMedium
                             )
-                            BasicText(
+                            Text(
                                 text = "No books yet",
-                                style = IOSTheme.typography.title3.copy(
-                                    color = colors.label
-                                )
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onBackground
                             )
-                            BasicText(
-                                text = "Tap + to add your first book",
-                                style = IOSTheme.typography.subheadline.copy(
-                                    color = colors.secondaryLabel
-                                )
+                            Text(
+                                text = "Tap the + button to add your first book",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
                 } else {
                     LazyColumn(
                         contentPadding = PaddingValues(
-                            top = 0.dp,
-                            bottom = 100.dp // Padding for FAB
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 8.dp,
+                            bottom = 88.dp // Padding for FAB
                         ),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {
                         itemsIndexed(
@@ -152,32 +170,6 @@ fun HomeScreen(
                     }
                 }
             }
-        }
-        
-        // Floating Action Button
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = 32.dp, end = 24.dp) // Things 3 places FAB at bottom-right or center-right
-                .size(56.dp)
-                .shadow(elevation = 6.dp, shape = CircleShape, ambientColor = colors.primary.copy(alpha = 0.4f), spotColor = colors.primary.copy(alpha = 0.6f))
-                .clip(CircleShape)
-                .background(colors.primary)
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ) { onEvent(HomeEvent.OnAddBookClicked) },
-            contentAlignment = Alignment.Center
-        ) {
-            BasicText(
-                text = "+",
-                style = IOSTheme.typography.largeTitle.copy(
-                    color = Color.White,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 32.sp,
-                ),
-                modifier = Modifier.offset(y = (-2).dp)
-            )
         }
     }
 }
