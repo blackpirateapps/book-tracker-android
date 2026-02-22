@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.booktracker.app.domain.model.ShelfType
 import com.booktracker.app.presentation.components.*
@@ -26,7 +27,6 @@ fun AddBookScreen(
     val typography = IOSTheme.typography
     val shapes = IOSTheme.shapes
     val spacing = IOSTheme.spacing
-    val dimensions = IOSTheme.dimensions
 
     val shelves = remember { ShelfType.entries.toList() }
     val shelfLabels = remember { shelves.map { it.displayName } }
@@ -37,21 +37,21 @@ fun AddBookScreen(
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .background(colors.surface, shapes.sheet)
-            .padding(top = spacing.md)
+            .fillMaxSize()
+            .background(colors.surface)
     ) {
         // Sheet handle
+        Spacer(modifier = Modifier.height(8.dp))
         Box(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .width(dimensions.sheetHandleWidth)
-                .height(dimensions.sheetHandleHeight)
+                .width(36.dp)
+                .height(5.dp)
                 .clip(shapes.capsule)
                 .background(colors.tertiaryLabel)
         )
 
-        Spacer(modifier = Modifier.height(spacing.md))
+        Spacer(modifier = Modifier.height(14.dp))
 
         // Header with Cancel and Add buttons
         Row(
@@ -71,7 +71,10 @@ fun AddBookScreen(
 
             BasicText(
                 text = "Add Book",
-                style = typography.headline.copy(color = colors.label)
+                style = typography.headline.copy(
+                    color = colors.label,
+                    fontWeight = FontWeight.SemiBold
+                )
             )
 
             IOSTextButton(
@@ -82,20 +85,31 @@ fun AddBookScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(spacing.lg))
+        // Divider
+        Spacer(modifier = Modifier.height(14.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(0.5.dp)
+                .background(colors.separator)
+        )
 
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = spacing.md),
-            verticalArrangement = Arrangement.spacedBy(spacing.md)
+                .padding(horizontal = spacing.md)
+                .padding(top = spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(spacing.lg)
         ) {
             // Title field
-            Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 BasicText(
-                    text = "Title",
-                    style = typography.footnote.copy(color = colors.secondaryLabel)
+                    text = "TITLE",
+                    style = typography.caption2.copy(
+                        color = colors.secondaryLabel,
+                        fontWeight = FontWeight.Medium
+                    )
                 )
                 IOSTextField(
                     value = uiState.title,
@@ -111,10 +125,13 @@ fun AddBookScreen(
             }
 
             // Author field
-            Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 BasicText(
-                    text = "Author",
-                    style = typography.footnote.copy(color = colors.secondaryLabel)
+                    text = "AUTHOR",
+                    style = typography.caption2.copy(
+                        color = colors.secondaryLabel,
+                        fontWeight = FontWeight.Medium
+                    )
                 )
                 IOSTextField(
                     value = uiState.author,
@@ -130,10 +147,13 @@ fun AddBookScreen(
             }
 
             // Shelf selector
-            Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 BasicText(
-                    text = "Shelf",
-                    style = typography.footnote.copy(color = colors.secondaryLabel)
+                    text = "SHELF",
+                    style = typography.caption2.copy(
+                        color = colors.secondaryLabel,
+                        fontWeight = FontWeight.Medium
+                    )
                 )
                 val selectedIndex = remember(uiState.shelf) {
                     shelves.indexOf(uiState.shelf)
@@ -149,18 +169,24 @@ fun AddBookScreen(
 
             // Progress (only when shelf is Reading)
             if (uiState.shelf == ShelfType.READING) {
-                Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         BasicText(
-                            text = "Progress",
-                            style = typography.footnote.copy(color = colors.secondaryLabel)
+                            text = "PROGRESS",
+                            style = typography.caption2.copy(
+                                color = colors.secondaryLabel,
+                                fontWeight = FontWeight.Medium
+                            )
                         )
                         BasicText(
                             text = "${uiState.progress}%",
-                            style = typography.footnote.copy(color = colors.primary)
+                            style = typography.caption2.copy(
+                                color = colors.primary,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         )
                     }
                     IOSSlider(

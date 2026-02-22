@@ -1,6 +1,7 @@
 package com.booktracker.app.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -37,13 +38,18 @@ fun BookCard(
         modifier = modifier
             .fillMaxWidth()
             .shadow(
-                elevation = 2.dp,
+                elevation = 6.dp,
                 shape = shapes.card,
-                ambientColor = colors.cardShadow,
-                spotColor = colors.cardShadow
+                ambientColor = Color.Black.copy(alpha = 0.06f),
+                spotColor = Color.Black.copy(alpha = 0.08f)
             )
             .clip(shapes.card)
             .background(colors.surface)
+            .border(
+                width = 0.5.dp,
+                color = colors.separator.copy(alpha = 0.3f),
+                shape = shapes.card
+            )
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -52,19 +58,24 @@ fun BookCard(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(spacing.md)
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Cover image
-            AsyncImage(
-                model = book.coverUrl,
-                contentDescription = "${book.title} cover",
-                contentScale = ContentScale.Crop,
+            // Cover image with subtle shadow
+            Box(
                 modifier = Modifier
-                    .width(dimensions.coverWidth)
-                    .height(dimensions.coverHeight)
+                    .shadow(4.dp, shapes.cover)
                     .clip(shapes.cover)
-                    .background(colors.fill)
-            )
+            ) {
+                AsyncImage(
+                    model = book.coverUrl,
+                    contentDescription = "${book.title} cover",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .width(dimensions.coverWidth)
+                        .height(dimensions.coverHeight)
+                        .background(colors.fill)
+                )
+            }
 
             // Book info
             Column(
@@ -73,7 +84,9 @@ fun BookCard(
                     .height(dimensions.coverHeight),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
                     BasicText(
                         text = book.title,
                         style = typography.headline.copy(color = colors.label),
@@ -82,31 +95,32 @@ fun BookCard(
                     )
                     BasicText(
                         text = book.author,
-                        style = typography.subheadline.copy(color = colors.secondaryLabel),
+                        style = typography.subheadline.copy(
+                            color = colors.secondaryLabel
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     // Shelf tag
                     ShelfTag(shelf = book.shelf)
 
                     // Progress bar (only for Reading)
                     if (book.shelf == ShelfType.READING) {
-                        Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
-                            IOSProgressBar(
-                                progress = book.progress / 100f,
-                                modifier = Modifier.fillMaxWidth()
+                        IOSProgressBar(
+                            progress = book.progress / 100f,
+                            modifier = Modifier.fillMaxWidth(),
+                            height = 5.dp
+                        )
+                        BasicText(
+                            text = "${book.progress}% completed",
+                            style = typography.caption1.copy(
+                                color = colors.secondaryLabel,
+                                fontWeight = FontWeight.Medium
                             )
-                            BasicText(
-                                text = "${book.progress}%",
-                                style = typography.caption1.copy(
-                                    color = colors.secondaryLabel,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            )
-                        }
+                        )
                     }
                 }
             }
@@ -133,7 +147,7 @@ fun ShelfTag(
     Box(
         modifier = modifier
             .clip(shapes.tag)
-            .background(tagColor.copy(alpha = 0.15f))
+            .background(tagColor.copy(alpha = 0.12f))
             .padding(horizontal = 10.dp, vertical = 4.dp)
     ) {
         BasicText(

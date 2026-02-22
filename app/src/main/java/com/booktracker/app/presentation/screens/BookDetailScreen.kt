@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
@@ -15,8 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.booktracker.app.domain.model.ShelfType
@@ -50,8 +53,9 @@ fun BookDetailScreen(
             .background(colors.background)
             .statusBarsPadding()
     ) {
+        // Inline back bar only (no large title here)
         IOSNavigationBar(
-            title = uiState.book?.title ?: "",
+            title = "",
             showBackButton = true,
             onBackClick = { onEvent(BookDetailEvent.OnBackClicked) }
         )
@@ -73,39 +77,55 @@ fun BookDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(spacing.md),
+                    .padding(horizontal = spacing.md),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Cover image
-                AsyncImage(
-                    model = book.coverUrl,
-                    contentDescription = "${book.title} cover",
-                    contentScale = ContentScale.Crop,
+                Spacer(modifier = Modifier.height(spacing.sm))
+
+                // Cover image with book shadow
+                Box(
                     modifier = Modifier
-                        .width(dimensions.detailCoverWidth)
-                        .height(dimensions.detailCoverHeight)
-                        .shadow(8.dp, shapes.cover)
+                        .shadow(
+                            elevation = 16.dp,
+                            shape = shapes.cover,
+                            ambientColor = Color.Black.copy(alpha = 0.15f),
+                            spotColor = Color.Black.copy(alpha = 0.2f)
+                        )
                         .clip(shapes.cover)
-                        .background(colors.fill)
-                )
+                ) {
+                    AsyncImage(
+                        model = book.coverUrl,
+                        contentDescription = "${book.title} cover",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .width(dimensions.detailCoverWidth)
+                            .height(dimensions.detailCoverHeight)
+                            .background(colors.fill)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(spacing.lg))
 
-                // Title
+                // Title & Author (centered, prominent)
                 BasicText(
                     text = book.title,
-                    style = typography.title1.copy(color = colors.label)
+                    style = typography.title1.copy(
+                        color = colors.label,
+                        textAlign = TextAlign.Center
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(spacing.xs))
 
-                // Author
                 BasicText(
                     text = book.author,
-                    style = typography.body.copy(color = colors.secondaryLabel)
+                    style = typography.callout.copy(
+                        color = colors.secondaryLabel,
+                        textAlign = TextAlign.Center
+                    )
                 )
 
-                Spacer(modifier = Modifier.height(spacing.lg))
+                Spacer(modifier = Modifier.height(spacing.xl))
 
                 // Shelf segmented control
                 val selectedIndex = remember(book.shelf) {
@@ -133,11 +153,17 @@ fun BookDetailScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .shadow(2.dp, shapes.card, ambientColor = colors.cardShadow)
+                                .shadow(
+                                    elevation = 6.dp,
+                                    shape = shapes.card,
+                                    ambientColor = Color.Black.copy(alpha = 0.06f),
+                                    spotColor = Color.Black.copy(alpha = 0.08f)
+                                )
                                 .clip(shapes.card)
                                 .background(colors.surface)
+                                .border(0.5.dp, colors.separator.copy(alpha = 0.3f), shapes.card)
                                 .padding(spacing.md),
-                            verticalArrangement = Arrangement.spacedBy(spacing.md)
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
                             BasicText(
                                 text = "Reading Progress",
@@ -152,7 +178,7 @@ fun BookDetailScreen(
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.Bottom
                             ) {
                                 BasicText(
                                     text = "${book.progress}%",
@@ -185,15 +211,21 @@ fun BookDetailScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(spacing.lg))
+                Spacer(modifier = Modifier.height(spacing.md))
 
                 // Action buttons
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .shadow(2.dp, shapes.card, ambientColor = colors.cardShadow)
+                        .shadow(
+                            elevation = 6.dp,
+                            shape = shapes.card,
+                            ambientColor = Color.Black.copy(alpha = 0.06f),
+                            spotColor = Color.Black.copy(alpha = 0.08f)
+                        )
                         .clip(shapes.card)
                         .background(colors.surface)
+                        .border(0.5.dp, colors.separator.copy(alpha = 0.3f), shapes.card)
                         .padding(spacing.md),
                     verticalArrangement = Arrangement.spacedBy(spacing.sm)
                 ) {
@@ -201,6 +233,8 @@ fun BookDetailScreen(
                         text = "Actions",
                         style = typography.headline.copy(color = colors.label)
                     )
+
+                    Spacer(modifier = Modifier.height(spacing.xs))
 
                     if (book.shelf != ShelfType.READ) {
                         IOSButton(

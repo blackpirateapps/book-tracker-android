@@ -27,7 +27,7 @@ fun IOSSearchBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(IOSTheme.dimensions.searchBarHeight)
+            .height(38.dp)
             .clip(shapes.searchBar)
             .background(colors.searchBarBackground),
         contentAlignment = Alignment.CenterStart
@@ -35,10 +35,10 @@ fun IOSSearchBar(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 8.dp),
+                .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Magnifying glass icon (using text emoji for simplicity)
+            // Magnifying glass icon
             BasicText(
                 text = "🔍",
                 style = TextStyle(fontSize = 14.sp),
@@ -51,7 +51,7 @@ fun IOSSearchBar(
                         text = placeholder,
                         style = TextStyle(
                             color = colors.secondaryLabel,
-                            fontSize = 17.sp
+                            fontSize = 16.sp
                         )
                     )
                 }
@@ -60,7 +60,7 @@ fun IOSSearchBar(
                     onValueChange = onQueryChange,
                     textStyle = TextStyle(
                         color = colors.label,
-                        fontSize = 17.sp
+                        fontSize = 16.sp
                     ),
                     singleLine = true,
                     cursorBrush = SolidColor(colors.primary),

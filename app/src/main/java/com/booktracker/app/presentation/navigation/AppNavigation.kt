@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -13,7 +14,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,7 +27,6 @@ import com.booktracker.app.domain.repository.BookRepository
 import com.booktracker.app.presentation.screens.AddBookScreen
 import com.booktracker.app.presentation.screens.BookDetailScreen
 import com.booktracker.app.presentation.screens.HomeScreen
-import com.booktracker.app.presentation.theme.IOSTheme
 import com.booktracker.app.presentation.viewmodel.*
 
 @Composable
@@ -127,16 +126,21 @@ private fun AddBookDialog(
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.85f)
-                .padding(top = 60.dp)
-                .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
+                .fillMaxSize(),
+            contentAlignment = Alignment.BottomCenter
         ) {
-            AddBookScreen(
-                uiState = uiState,
-                onEvent = viewModel::onEvent,
-                onDismiss = onDismiss
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.92f)
+                    .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
+            ) {
+                AddBookScreen(
+                    uiState = uiState,
+                    onEvent = viewModel::onEvent,
+                    onDismiss = onDismiss
+                )
+            }
         }
     }
 }

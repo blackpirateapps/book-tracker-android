@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.booktracker.app.presentation.theme.IOSTheme
@@ -45,7 +44,7 @@ fun IOSSegmentedControl(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(IOSTheme.dimensions.segmentedControlHeight)
+            .height(36.dp)
             .clip(segmentedControlShape)
             .background(colors.segmentedControlBackground)
             .onGloballyPositioned { containerSize = it.size }
@@ -54,7 +53,7 @@ fun IOSSegmentedControl(
             val itemWidth = with(density) { (containerSize.width / items.size).toDp() }
             val offsetX by animateDpAsState(
                 targetValue = itemWidth * selectedIndex,
-                animationSpec = tween(200),
+                animationSpec = tween(250),
                 label = "segmentOffset"
             )
 
@@ -64,12 +63,11 @@ fun IOSSegmentedControl(
                     .padding(2.dp)
                     .width(itemWidth - 4.dp)
                     .fillMaxHeight()
-                    .padding(vertical = 0.dp)
                     .shadow(
-                        elevation = 1.dp,
+                        elevation = 3.dp,
                         shape = itemShape,
-                        ambientColor = Color.Black.copy(alpha = 0.08f),
-                        spotColor = Color.Black.copy(alpha = 0.08f)
+                        ambientColor = Color.Black.copy(alpha = 0.12f),
+                        spotColor = Color.Black.copy(alpha = 0.12f)
                     )
                     .clip(itemShape)
                     .background(colors.segmentedControlSelected)
@@ -94,8 +92,8 @@ fun IOSSegmentedControl(
                     BasicText(
                         text = label,
                         style = typography.footnote.copy(
-                            fontWeight = if (index == selectedIndex) FontWeight.SemiBold else FontWeight.Normal,
-                            color = colors.label
+                            fontWeight = if (index == selectedIndex) FontWeight.SemiBold else FontWeight.Medium,
+                            color = if (index == selectedIndex) colors.label else colors.secondaryLabel
                         )
                     )
                 }

@@ -19,7 +19,7 @@ fun IOSProgressBar(
     modifier: Modifier = Modifier,
     trackColor: Color = IOSTheme.colors.progressTrack,
     fillColor: Color = IOSTheme.colors.progressFill,
-    height: Dp = IOSTheme.dimensions.progressBarHeight
+    height: Dp = 5.dp
 ) {
     val shapes = IOSTheme.shapes
     val animatedProgress by animateFloatAsState(

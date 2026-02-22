@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,7 +51,8 @@ fun HomeScreen(
             trailingContent = {
                 Box(
                     modifier = Modifier
-                        .size(IOSTheme.dimensions.addButtonSize)
+                        .size(34.dp)
+                        .shadow(2.dp, CircleShape)
                         .clip(CircleShape)
                         .background(colors.primary)
                         .clickable(
@@ -63,9 +65,9 @@ fun HomeScreen(
                         text = "+",
                         style = IOSTheme.typography.title3.copy(
                             color = Color.White,
-                            fontWeight = FontWeight.Light,
-                            fontSize = 20.sp,
-                            lineHeight = 20.sp
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 22.sp,
+                            lineHeight = 22.sp
                         )
                     )
                 }
@@ -79,7 +81,7 @@ fun HomeScreen(
             modifier = Modifier.padding(horizontal = spacing.md)
         )
 
-        Spacer(modifier = Modifier.height(spacing.md))
+        Spacer(modifier = Modifier.height(14.dp))
 
         // Segmented control
         IOSSegmentedControl(
@@ -91,7 +93,7 @@ fun HomeScreen(
             modifier = Modifier.padding(horizontal = spacing.md)
         )
 
-        Spacer(modifier = Modifier.height(spacing.md))
+        Spacer(modifier = Modifier.height(14.dp))
 
         // Book list
         Crossfade(
@@ -111,33 +113,44 @@ fun HomeScreen(
                 }
             } else if (uiState.filteredBooks.isEmpty()) {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(spacing.xl),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(spacing.sm)
+                    ) {
                         BasicText(
                             text = "📚",
-                            style = IOSTheme.typography.largeTitle
+                            style = IOSTheme.typography.largeTitle.copy(
+                                fontSize = 48.sp
+                            )
                         )
-                        Spacer(modifier = Modifier.height(spacing.sm))
                         BasicText(
                             text = "No books yet",
-                            style = IOSTheme.typography.headline.copy(color = colors.secondaryLabel)
+                            style = IOSTheme.typography.title3.copy(
+                                color = colors.label
+                            )
                         )
-                        Spacer(modifier = Modifier.height(spacing.xs))
                         BasicText(
                             text = "Tap + to add your first book",
-                            style = IOSTheme.typography.subheadline.copy(color = colors.tertiaryLabel)
+                            style = IOSTheme.typography.subheadline.copy(
+                                color = colors.secondaryLabel
+                            )
                         )
                     }
                 }
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(
-                        horizontal = spacing.md,
-                        vertical = spacing.sm
+                        start = spacing.md,
+                        end = spacing.md,
+                        top = spacing.xs,
+                        bottom = spacing.xxl
                     ),
-                    verticalArrangement = Arrangement.spacedBy(spacing.md)
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     itemsIndexed(
                         items = uiState.filteredBooks,
@@ -149,10 +162,10 @@ fun HomeScreen(
                         }
                         AnimatedVisibility(
                             visible = visible,
-                            enter = fadeIn(tween(400, delayMillis = index * 50)) +
+                            enter = fadeIn(tween(400, delayMillis = index * 60)) +
                                     slideInVertically(
-                                        tween(400, delayMillis = index * 50),
-                                        initialOffsetY = { it / 4 }
+                                        tween(400, delayMillis = index * 60),
+                                        initialOffsetY = { it / 5 }
                                     )
                         ) {
                             BookCard(
@@ -161,8 +174,6 @@ fun HomeScreen(
                             )
                         }
                     }
-                    // Bottom padding for navigation bar
-                    item { Spacer(modifier = Modifier.height(spacing.xl)) }
                 }
             }
         }
