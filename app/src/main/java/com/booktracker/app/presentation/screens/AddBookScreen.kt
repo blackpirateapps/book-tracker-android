@@ -123,21 +123,22 @@ fun AddBookScreen(
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                         shape = MaterialTheme.shapes.medium
                     )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        shelves.forEach { shelf ->
-                            DropdownMenuItem(
-                                text = { Text(shelf.displayName) },
-                                onClick = {
-                                    onEvent(AddBookEvent.OnShelfChanged(shelf))
-                                    expanded = false
-                                }
-                            )
-                        }
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    shelves.forEach { shelf ->
+                        DropdownMenuItem(
+                            text = { Text(shelf.displayName) },
+                            onClick = {
+                                onEvent(AddBookEvent.OnShelfChanged(shelf))
+                                expanded = false
+                            }
+                        )
                     }
                 }
+            }
+            }
 
             // Progress (only when shelf is Reading)
             if (uiState.shelf == ShelfType.READING) {
