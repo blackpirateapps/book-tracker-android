@@ -1,22 +1,18 @@
 package com.booktracker.app.presentation.screens
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.LibraryBooks
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -25,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -56,8 +51,17 @@ fun BookDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onEvent(BookDetailEvent.OnEditClicked) }) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
+                    if (uiState.isEditing) {
+                        IconButton(onClick = { onEvent(BookDetailEvent.OnCancelEditClicked) }) {
+                            Icon(imageVector = Icons.Default.Close, contentDescription = "Cancel")
+                        }
+                        IconButton(onClick = { onEvent(BookDetailEvent.OnSaveClicked) }) {
+                            Icon(imageVector = Icons.Default.Check, contentDescription = "Save")
+                        }
+                    } else {
+                        IconButton(onClick = { onEvent(BookDetailEvent.OnEditClicked) }) {
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -186,6 +190,59 @@ fun BookDetailScreen(
                 )
             }
 
+            if (uiState.isEditing) {
+                SectionHeader("EDIT FIELDS")
+                Surface(
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 2.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = uiState.editReadingMedium,
+                            onValueChange = { onEvent(BookDetailEvent.OnEditReadingMediumChanged(it)) },
+                            label = { Text("Reading Medium") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = uiState.editPageCount,
+                            onValueChange = { onEvent(BookDetailEvent.OnEditPageCountChanged(it)) },
+                            label = { Text("Page Count") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = uiState.editStartedOn,
+                            onValueChange = { onEvent(BookDetailEvent.OnEditStartedOnChanged(it)) },
+                            label = { Text("Started On (YYYY-MM-DD)") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = uiState.editFinishedOn,
+                            onValueChange = { onEvent(BookDetailEvent.OnEditFinishedOnChanged(it)) },
+                            label = { Text("Finished On (YYYY-MM-DD)") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = uiState.editDescription,
+                            onValueChange = { onEvent(BookDetailEvent.OnEditDescriptionChanged(it)) },
+                            label = { Text("Description") },
+                            modifier = Modifier.fillMaxWidth(),
+                            minLines = 3
+                        )
+                    }
+                }
+            }
+
             SectionHeader("SHELF")
             Surface(
                 shape = MaterialTheme.shapes.large,
@@ -260,69 +317,61 @@ fun BookDetailScreen(
                 }
             }
 
-            AnimatedContent(
-                targetState = book.shelf == ShelfType.READING,
-                transitionSpec = { fadeIn(tween(250)) togetherWith fadeOut(tween(250)) },
-                label = "progressSection"
-            ) { showProgress ->
-                if (showProgress) {
-                    Surface(
-                        shape = MaterialTheme.shapes.large,
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier.fillMaxWidth()
+            if (book.shelf == ShelfType.READING) {
+                Surface(
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Current Progress",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    text = "${book.progress}%",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-
-                            LinearProgressIndicator(
-                                progress = { book.progress / 100f },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(10.dp)
-                                    .clip(MaterialTheme.shapes.small),
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                            Text(
+                                text = "Current Progress",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
                             )
-
-                            Slider(
-                                value = book.progress / 100f,
-                                onValueChange = { newValue ->
-                                    onEvent(
-                                        BookDetailEvent.OnProgressChanged(
-                                            (newValue * 100).toInt()
-                                        )
-                                    )
-                                }
+                            Text(
+                                text = "${book.progress}%",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
                             )
                         }
+
+                        LinearProgressIndicator(
+                            progress = { book.progress / 100f },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(10.dp)
+                                .clip(MaterialTheme.shapes.small),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        )
+
+                        Slider(
+                            value = book.progress / 100f,
+                            onValueChange = { newValue ->
+                                onEvent(
+                                    BookDetailEvent.OnProgressChanged(
+                                        (newValue * 100).toInt()
+                                    )
+                                )
+                            }
+                        )
                     }
-                } else {
-                    Spacer(modifier = Modifier.height(0.dp))
                 }
             }
 
-            if (!book.description.isNullOrBlank()) {
+            if (!book.description.isNullOrBlank() && !uiState.isEditing) {
                 SectionHeader("ABOUT")
                 Surface(
                     shape = MaterialTheme.shapes.large,

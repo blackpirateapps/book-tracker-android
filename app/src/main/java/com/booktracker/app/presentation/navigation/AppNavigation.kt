@@ -1,7 +1,5 @@
 package com.booktracker.app.presentation.navigation
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -65,19 +63,7 @@ fun AppNavigation(
         NavHost(
             navController = navController,
             startDestination = Screen.Home.createRoute(), // Default to all shelves
-            modifier = Modifier.padding(innerPadding),
-            enterTransition = {
-                slideInHorizontally(tween(300)) { it } + fadeIn(tween(300))
-            },
-            exitTransition = {
-                slideOutHorizontally(tween(300)) { -it / 3 } + fadeOut(tween(150))
-            },
-            popEnterTransition = {
-                slideInHorizontally(tween(300)) { -it / 3 } + fadeIn(tween(300))
-            },
-            popExitTransition = {
-                slideOutHorizontally(tween(300)) { it } + fadeOut(tween(150))
-            }
+            modifier = Modifier.padding(innerPadding)
         ) {
             composable(
                 route = Screen.Home.route,

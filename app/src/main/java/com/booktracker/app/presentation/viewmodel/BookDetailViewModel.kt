@@ -43,17 +43,53 @@ class BookDetailViewModel(
             is BookDetailEvent.OnEditClicked -> {
                 val book = _uiState.value.book
                 if (book != null) {
-                    _uiState.update { it.copy(isEditing = true, editTitle = book.title, editAuthor = book.author) }
+                    _uiState.update {
+                        it.copy(
+                            isEditing = true,
+                            editTitle = book.title,
+                            editAuthor = book.author,
+                            editReadingMedium = book.readingMedium,
+                            editStartedOn = book.startedOn.orEmpty(),
+                            editFinishedOn = book.finishedOn.orEmpty(),
+                            editPageCount = book.pageCount?.toString().orEmpty(),
+                            editDescription = book.description.orEmpty()
+                        )
+                    }
                 }
             }
             is BookDetailEvent.OnCancelEditClicked -> {
-                _uiState.update { it.copy(isEditing = false) }
+                val book = _uiState.value.book
+                if (book != null) {
+                    _uiState.update {
+                        it.copy(
+                            isEditing = false,
+                            editTitle = book.title,
+                            editAuthor = book.author,
+                            editReadingMedium = book.readingMedium,
+                            editStartedOn = book.startedOn.orEmpty(),
+                            editFinishedOn = book.finishedOn.orEmpty(),
+                            editPageCount = book.pageCount?.toString().orEmpty(),
+                            editDescription = book.description.orEmpty()
+                        )
+                    }
+                } else {
+                    _uiState.update { it.copy(isEditing = false) }
+                }
             }
             is BookDetailEvent.OnSaveClicked -> {
                 val state = _uiState.value
                 val book = state.book
                 if (book != null) {
-                    val updatedBook = book.copy(title = state.editTitle, author = state.editAuthor)
+                    val parsedPageCount = state.editPageCount.trim().toIntOrNull()
+                    val updatedBook = book.copy(
+                        title = state.editTitle,
+                        author = state.editAuthor,
+                        readingMedium = state.editReadingMedium,
+                        startedOn = state.editStartedOn.ifBlank { null },
+                        finishedOn = state.editFinishedOn.ifBlank { null },
+                        pageCount = parsedPageCount,
+                        description = state.editDescription.ifBlank { null }
+                    )
                     viewModelScope.launch {
                         updateBookUseCase(updatedBook)
                         _uiState.update { it.copy(book = updatedBook, isEditing = false) }
@@ -65,6 +101,21 @@ class BookDetailViewModel(
             }
             is BookDetailEvent.OnEditAuthorChanged -> {
                 _uiState.update { it.copy(editAuthor = event.author) }
+            }
+            is BookDetailEvent.OnEditReadingMediumChanged -> {
+                _uiState.update { it.copy(editReadingMedium = event.value) }
+            }
+            is BookDetailEvent.OnEditStartedOnChanged -> {
+                _uiState.update { it.copy(editStartedOn = event.value) }
+            }
+            is BookDetailEvent.OnEditFinishedOnChanged -> {
+                _uiState.update { it.copy(editFinishedOn = event.value) }
+            }
+            is BookDetailEvent.OnEditPageCountChanged -> {
+                _uiState.update { it.copy(editPageCount = event.value) }
+            }
+            is BookDetailEvent.OnEditDescriptionChanged -> {
+                _uiState.update { it.copy(editDescription = event.value) }
             }
         }
     }

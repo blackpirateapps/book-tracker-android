@@ -14,6 +14,7 @@ data class HomeUiState(
     val searchResults: List<SearchBook> = emptyList(),
     val isSearching: Boolean = false,
     val searchError: String? = null,
+    val isGridView: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
     val showAddSheet: Boolean = false
@@ -27,6 +28,7 @@ sealed class HomeEvent {
     data object OnDismissAddSheet : HomeEvent()
     data object OnRefresh : HomeEvent()
     data class OnAddFromSearch(val olid: String) : HomeEvent()
+    data object OnToggleLayout : HomeEvent()
 }
 
 // ─── Book Detail Screen State ────────────────────────────
@@ -38,7 +40,12 @@ data class BookDetailUiState(
     val navigateBack: Boolean = false,
     val isEditing: Boolean = false,
     val editTitle: String = "",
-    val editAuthor: String = ""
+    val editAuthor: String = "",
+    val editReadingMedium: String = "",
+    val editStartedOn: String = "",
+    val editFinishedOn: String = "",
+    val editPageCount: String = "",
+    val editDescription: String = ""
 )
 
 sealed class BookDetailEvent {
@@ -52,6 +59,11 @@ sealed class BookDetailEvent {
     data object OnCancelEditClicked : BookDetailEvent()
     data class OnEditTitleChanged(val title: String) : BookDetailEvent()
     data class OnEditAuthorChanged(val author: String) : BookDetailEvent()
+    data class OnEditReadingMediumChanged(val value: String) : BookDetailEvent()
+    data class OnEditStartedOnChanged(val value: String) : BookDetailEvent()
+    data class OnEditFinishedOnChanged(val value: String) : BookDetailEvent()
+    data class OnEditPageCountChanged(val value: String) : BookDetailEvent()
+    data class OnEditDescriptionChanged(val value: String) : BookDetailEvent()
 }
 
 // ─── Add Book Screen State ───────────────────────────────

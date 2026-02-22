@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import io.ktor.client.network.sockets.SocketTimeoutException
 
 import androidx.lifecycle.SavedStateHandle
 
@@ -83,6 +84,9 @@ class HomeViewModel(
             }
             is HomeEvent.OnRefresh -> loadBooks()
             is HomeEvent.OnAddFromSearch -> addFromSearch(event.olid)
+            is HomeEvent.OnToggleLayout -> {
+                _uiState.update { it.copy(isGridView = !it.isGridView) }
+            }
         }
     }
 
@@ -118,7 +122,13 @@ class HomeViewModel(
             if (result.isSuccess) {
                 _uiState.update { it.copy(searchResults = result.getOrNull().orEmpty(), isSearching = false) }
             } else {
-                _uiState.update { it.copy(searchResults = emptyList(), isSearching = false, searchError = result.exceptionOrNull()?.message) }
+                val error = result.exceptionOrNull()
+                val message = if (error is SocketTimeoutException) {
+                    "Search timed out. Try again."
+                } else {
+                    error?.message ?: "Search failed."
+                }
+                _uiState.update { it.copy(searchResults = emptyList(), isSearching = false, searchError = message) }
             }
         }
     }
