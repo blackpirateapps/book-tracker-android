@@ -32,7 +32,8 @@ fun SettingsScreen(
     onApiPasswordChanged: (String) -> Unit = {},
     onTestConnection: suspend () -> Result<Boolean> = { Result.success(true) },
     onForceRefresh: () -> Unit = {},
-    onFetchRawPublic: suspend (Int, Int) -> Result<String> = { _, _ -> Result.success("[]") }
+    onFetchRawPublic: suspend (Int, Int) -> Result<String> = { _, _ -> Result.success("[]") },
+    onFetchRawBooks: suspend () -> Result<String> = { Result.success("[]") }
 ) {
     val scope = rememberCoroutineScope()
     var isTesting by remember { mutableStateOf(false) }
@@ -40,6 +41,7 @@ fun SettingsScreen(
     var isFetchingRaw by remember { mutableStateOf(false) }
     var rawResult by remember { mutableStateOf<String?>(null) }
     var rawError by remember { mutableStateOf<String?>(null) }
+    var rawTitle by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -205,6 +207,7 @@ fun SettingsScreen(
                                 isFetchingRaw = true
                                 rawResult = null
                                 rawError = null
+                                rawTitle = "/api/public?limit=3&offset=0"
                                 scope.launch {
                                     val result = onFetchRawPublic(3, 0)
                                     if (result.isSuccess) {
@@ -216,17 +219,43 @@ fun SettingsScreen(
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = !isFetchingRaw && apiDomain.isNotBlank()
+                            enabled = !isFetchingRaw && apiDomain.isNotBlank(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
                         ) {
                             if (isFetchingRaw) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(24.dp),
-                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                                     strokeWidth = 2.dp
                                 )
                             } else {
                                 Text("Fetch Raw /api/public")
                             }
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                isFetchingRaw = true
+                                rawResult = null
+                                rawError = null
+                                rawTitle = "/api/books"
+                                scope.launch {
+                                    val result = onFetchRawBooks()
+                                    if (result.isSuccess) {
+                                        rawResult = result.getOrNull()
+                                    } else {
+                                        rawError = result.exceptionOrNull()?.message ?: "Unknown error"
+                                    }
+                                    isFetchingRaw = false
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isFetchingRaw && apiDomain.isNotBlank()
+                        ) {
+                            Text("Fetch Raw /api/books")
                         }
 
                         if (rawError != null) {
@@ -243,15 +272,28 @@ fun SettingsScreen(
                                 color = MaterialTheme.colorScheme.surface,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(
-                                    text = rawResult ?: "",
+                                Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .heightIn(min = 100.dp, max = 220.dp)
-                                        .verticalScroll(rememberScrollState())
                                         .padding(12.dp),
-                                    style = MaterialTheme.typography.bodySmall
-                                )
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    if (rawTitle != null) {
+                                        Text(
+                                            text = rawTitle ?: "",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Text(
+                                        text = rawResult ?: "",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .heightIn(min = 100.dp, max = 220.dp)
+                                            .verticalScroll(rememberScrollState()),
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
                             }
                         }
                     }

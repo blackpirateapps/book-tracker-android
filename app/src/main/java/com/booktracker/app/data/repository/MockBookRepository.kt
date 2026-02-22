@@ -38,4 +38,8 @@ class MockBookRepository : BookRepository {
     override suspend fun fetchRawPublic(limit: Int, offset: Int): Result<String> {
         return Result.success("[]")
     }
+
+    override suspend fun fetchRawBooks(): Result<String> {
+        return Result.success("[]")
+    }
 }

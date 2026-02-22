@@ -139,6 +139,9 @@ fun AppNavigation(
                     onForceRefresh = { AppRefreshBus.trigger() },
                     onFetchRawPublic = { limit, offset ->
                         repository.fetchRawPublic(limit, offset)
+                    },
+                    onFetchRawBooks = {
+                        repository.fetchRawBooks()
                     }
                 )
             }

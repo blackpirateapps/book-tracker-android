@@ -207,4 +207,17 @@ class KtorBookRepository(
             Result.failure(e)
         }
     }
+
+    override suspend fun fetchRawBooks(): Result<String> {
+        return try {
+            val response = client.get("$baseUrl/api/books")
+            if (response.status.isSuccess()) {
+                Result.success(response.bodyAsText())
+            } else {
+                Result.failure(Exception("Server returned ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
