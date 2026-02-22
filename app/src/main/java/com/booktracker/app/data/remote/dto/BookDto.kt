@@ -1,20 +1,19 @@
 package com.booktracker.app.data.remote.dto
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.JsonElement
 
 @Serializable
 data class BookDto(
     val id: String,
     val title: String,
-    val authors: List<String>? = emptyList(),
-    val imageLinks: ImageLinksDto? = null,
+    val authors: JsonElement? = null,
+    val imageLinks: JsonElement? = null,
     val pageCount: Int? = null,
     val publishedDate: String? = null,
     val fullPublishDate: String? = null,
     val publisher: String? = null,
-    val highlights: List<String>? = emptyList(),
+    val highlights: JsonElement? = null,
     val startedOn: String? = null,
     val finishedOn: String? = null,
     val readingMedium: String = "Not set",
@@ -22,8 +21,8 @@ data class BookDto(
     val hasHighlights: Int = 0,
     val readingProgress: Int = 0,
     val bookDescription: String? = null,
-    val subjects: List<String>? = emptyList(),
-    val tags: List<String>? = emptyList()
+    val subjects: JsonElement? = null,
+    val tags: JsonElement? = null
 )
 
 @Serializable

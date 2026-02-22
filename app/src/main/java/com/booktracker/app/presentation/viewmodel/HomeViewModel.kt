@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.booktracker.app.domain.model.ShelfType
 import com.booktracker.app.domain.usecase.GetBooksUseCase
+import com.booktracker.app.presentation.refresh.AppRefreshBus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +35,11 @@ class HomeViewModel(
                         // Ignored
                     }
                 }
+            }
+        }
+        viewModelScope.launch {
+            AppRefreshBus.events.collect {
+                loadBooks()
             }
         }
     }
@@ -75,13 +81,11 @@ class HomeViewModel(
 
     private fun filterBooks() {
         val state = _uiState.value
-        val filtered = state.books
-            .filter { it.shelf == state.selectedShelf }
-            .filter {
-                state.searchQuery.isBlank() ||
-                    it.title.contains(state.searchQuery, ignoreCase = true) ||
-                    it.author.contains(state.searchQuery, ignoreCase = true)
-            }
+        val filtered = state.books.filter {
+            state.searchQuery.isBlank() ||
+                it.title.contains(state.searchQuery, ignoreCase = true) ||
+                it.author.contains(state.searchQuery, ignoreCase = true)
+        }
         _uiState.update { it.copy(filteredBooks = filtered) }
     }
 

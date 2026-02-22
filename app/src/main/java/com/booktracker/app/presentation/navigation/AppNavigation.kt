@@ -32,6 +32,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material3.Scaffold
 import com.booktracker.app.presentation.screens.*
 import com.booktracker.app.presentation.viewmodel.*
+import com.booktracker.app.presentation.refresh.AppRefreshBus
 
 @Composable
 fun AppNavigation(
@@ -61,7 +62,7 @@ fun AppNavigation(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.createRoute(ShelfType.READING.name), // Let's default to reading
+            startDestination = Screen.Home.createRoute(), // Default to all shelves
             modifier = Modifier.padding(innerPadding),
             enterTransition = {
                 slideInHorizontally(tween(300)) { it } + fadeIn(tween(300))
@@ -98,6 +99,10 @@ fun AppNavigation(
                     onBookClick = { bookId ->
                         navController.navigate(Screen.BookDetail.createRoute(bookId))
                     },
+                    onForceRefresh = {
+                        AppRefreshBus.trigger()
+                        viewModel.onEvent(HomeEvent.OnRefresh)
+                    },
                     onSettingsClick = {
                         navController.navigate(Screen.Settings.route)
                     }
@@ -130,7 +135,8 @@ fun AppNavigation(
                         apiPassword = it
                         themePreferences.apiPassword = it
                     },
-                    onTestConnection = { repository.testConnection() }
+                    onTestConnection = { repository.testConnection() },
+                    onForceRefresh = { AppRefreshBus.trigger() }
                 )
             }
 

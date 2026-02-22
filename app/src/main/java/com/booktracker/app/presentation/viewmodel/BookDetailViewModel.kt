@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.booktracker.app.domain.model.ShelfType
 import com.booktracker.app.domain.usecase.GetBookByIdUseCase
 import com.booktracker.app.domain.usecase.UpdateBookUseCase
+import com.booktracker.app.presentation.refresh.AppRefreshBus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,6 +24,11 @@ class BookDetailViewModel(
 
     init {
         loadBook()
+        viewModelScope.launch {
+            AppRefreshBus.events.collect {
+                loadBook()
+            }
+        }
     }
 
     fun onEvent(event: BookDetailEvent) {

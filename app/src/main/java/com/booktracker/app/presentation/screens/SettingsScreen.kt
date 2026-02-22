@@ -28,7 +28,8 @@ fun SettingsScreen(
     onApiDomainChanged: (String) -> Unit = {},
     apiPassword: String = "",
     onApiPasswordChanged: (String) -> Unit = {},
-    onTestConnection: suspend () -> Result<Boolean> = { Result.success(true) }
+    onTestConnection: suspend () -> Result<Boolean> = { Result.success(true) },
+    onForceRefresh: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
     var isTesting by remember { mutableStateOf(false) }
@@ -162,6 +163,14 @@ fun SettingsScreen(
                             val color = if (testResult == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                             val text = if (testResult == true) "Connection successful!" else "Connection failed. Check URL or password."
                             Text(text = text, color = color, style = MaterialTheme.typography.bodyMedium)
+                        }
+
+                        OutlinedButton(
+                            onClick = onForceRefresh,
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = apiDomain.isNotBlank()
+                        ) {
+                            Text("Force Refresh")
                         }
                     }
                 }

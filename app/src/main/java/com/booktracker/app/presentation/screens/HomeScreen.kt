@@ -7,15 +7,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.booktracker.app.domain.model.ShelfType
 import com.booktracker.app.presentation.components.BookCard
 import com.booktracker.app.presentation.viewmodel.HomeEvent
 import com.booktracker.app.presentation.viewmodel.HomeUiState
@@ -26,15 +25,17 @@ fun HomeScreen(
     uiState: HomeUiState,
     onEvent: (HomeEvent) -> Unit,
     onBookClick: (String) -> Unit,
+    onForceRefresh: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
-    val shelves = remember { ShelfType.entries.toList() }
-
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("My Books") },
                 actions = {
+                    IconButton(onClick = onForceRefresh) {
+                        Icon(imageVector = Icons.Default.Refresh, contentDescription = "Force Refresh")
+                    }
                     IconButton(onClick = onSettingsClick) {
                         Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings")
                     }
@@ -75,102 +76,73 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Filter Chips
-            TabRow(
-                selectedTabIndex = shelves.indexOf(uiState.selectedShelf),
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                containerColor = Color.Transparent,
-                divider = {}
-            ) {
-                shelves.forEachIndexed { index, shelf ->
-                    Tab(
-                        selected = uiState.selectedShelf == shelf,
-                        onClick = { onEvent(HomeEvent.OnShelfChanged(shelf)) },
-                        text = { 
-                            Text(
-                                text = shelf.displayName,
-                                style = MaterialTheme.typography.labelSmall
-                            ) 
-                        }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             // Book list
-            Crossfade(
-                targetState = uiState.selectedShelf,
-                animationSpec = tween(300),
-                label = "shelfCrossfade"
-            ) { _ ->
-                if (uiState.isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else if (uiState.filteredBooks.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        CircularProgressIndicator()
+                        Text(
+                            text = "📚",
+                            style = MaterialTheme.typography.displayMedium
+                        )
+                        Text(
+                            text = "No books yet",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = "Tap the + button to add your first book",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
                     }
-                } else if (uiState.filteredBooks.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "📚",
-                                style = MaterialTheme.typography.displayMedium
-                            )
-                            Text(
-                                text = "No books yet",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                            Text(
-                                text = "Tap the + button to add your first book",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
+                }
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 8.dp,
+                        bottom = 88.dp // Padding for FAB
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    itemsIndexed(
+                        items = uiState.filteredBooks,
+                        key = { _, book -> book.id }
+                    ) { index, book ->
+                        var visible by remember { mutableStateOf(false) }
+                        LaunchedEffect(book.id) {
+                            visible = true
                         }
-                    }
-                } else {
-                    LazyColumn(
-                        contentPadding = PaddingValues(
-                            start = 16.dp,
-                            end = 16.dp,
-                            top = 8.dp,
-                            bottom = 88.dp // Padding for FAB
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        itemsIndexed(
-                            items = uiState.filteredBooks,
-                            key = { _, book -> book.id }
-                        ) { index, book ->
-                            var visible by remember { mutableStateOf(false) }
-                            LaunchedEffect(book.id) {
-                                visible = true
-                            }
-                            AnimatedVisibility(
-                                visible = visible,
-                                enter = fadeIn(tween(400, delayMillis = index * 30)) +
-                                        slideInVertically(
-                                            tween(400, delayMillis = index * 30),
-                                            initialOffsetY = { it / 5 }
-                                        )
-                            ) {
-                                BookCard(
-                                    book = book,
-                                    onClick = { onBookClick(book.id) }
-                                )
-                            }
+                        AnimatedVisibility(
+                            visible = visible,
+                            enter = fadeIn(tween(400, delayMillis = index * 30)) +
+                                    slideInVertically(
+                                        tween(400, delayMillis = index * 30),
+                                        initialOffsetY = { it / 5 }
+                                    )
+                        ) {
+                            BookCard(
+                                book = book,
+                                onClick = { onBookClick(book.id) }
+                            )
                         }
                     }
                 }

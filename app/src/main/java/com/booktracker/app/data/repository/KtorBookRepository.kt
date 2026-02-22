@@ -2,6 +2,7 @@ package com.booktracker.app.data.repository
 
 import com.booktracker.app.data.preferences.ThemePreferences
 import com.booktracker.app.data.remote.dto.BookDto
+import com.booktracker.app.data.remote.dto.ImageLinksDto
 import com.booktracker.app.domain.model.Book
 import com.booktracker.app.domain.model.ShelfType
 import com.booktracker.app.domain.repository.BookRepository
@@ -19,12 +20,14 @@ class KtorBookRepository(
     private val themePreferences: ThemePreferences
 ) : BookRepository {
 
+    private val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
+
     private val client = HttpClient {
         install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                coerceInputValues = true
-            })
+            json(json)
         }
         install(Logging) {
             level = LogLevel.INFO
@@ -105,7 +108,7 @@ class KtorBookRepository(
     )
 
     private fun BookDto.toDomain(): Book {
-        val authorsList = authors ?: emptyList()
+        val authorsList = authors.asStringList(json)
         val shelfType = ShelfType.values().find { it.apiValue == shelf } ?: ShelfType.READING_LIST
 
         return Book(
@@ -115,18 +118,62 @@ class KtorBookRepository(
             authors = authorsList,
             shelf = shelfType,
             progress = readingProgress,
-            coverUrl = imageLinks?.thumbnail ?: "",
+            coverUrl = imageLinks.asImageLinks(json)?.thumbnail ?: "",
             description = bookDescription,
             pageCount = pageCount,
             readingMedium = readingMedium,
             startedOn = startedOn,
             finishedOn = finishedOn,
-            highlights = highlights ?: emptyList(),
-            tags = tags ?: emptyList(),
-            subjects = subjects ?: emptyList(),
+            highlights = highlights.asStringList(json),
+            tags = tags.asStringList(json),
+            subjects = subjects.asStringList(json),
             publisher = publisher,
             publishDate = fullPublishDate ?: publishedDate
         )
+    }
+
+    private fun JsonElement?.asStringList(json: Json): List<String> {
+        if (this == null) return emptyList()
+        return when (this) {
+            is JsonArray -> this.mapNotNull { it.jsonPrimitive.contentOrNull }
+            is JsonPrimitive -> {
+                val content = this.contentOrNull ?: return emptyList()
+                parseStringList(content, json)
+            }
+            else -> emptyList()
+        }
+    }
+
+    private fun JsonElement?.asImageLinks(json: Json): ImageLinksDto? {
+        if (this == null) return null
+        return when (this) {
+            is JsonObject -> json.decodeFromJsonElement(this)
+            is JsonPrimitive -> {
+                val content = this.contentOrNull ?: return null
+                val parsed = parseJson(content, json) ?: return null
+                if (parsed is JsonObject) json.decodeFromJsonElement(parsed) else null
+            }
+            else -> null
+        }
+    }
+
+    private fun parseStringList(raw: String, json: Json): List<String> {
+        val trimmed = raw.trim()
+        if (trimmed.isEmpty()) return emptyList()
+        val parsed = parseJson(trimmed, json)
+        return if (parsed is JsonArray) {
+            parsed.mapNotNull { it.jsonPrimitive.contentOrNull }
+        } else {
+            listOf(trimmed)
+        }
+    }
+
+    private fun parseJson(raw: String, json: Json): JsonElement? {
+        return try {
+            json.parseToJsonElement(raw)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     override suspend fun testConnection(): Result<Boolean> {
