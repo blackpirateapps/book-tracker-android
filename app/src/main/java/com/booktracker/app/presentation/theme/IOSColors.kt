@@ -6,10 +6,10 @@ import androidx.compose.ui.graphics.Color
 
 @Immutable
 data class IOSColors(
-    val background: Color = Color(0xFFF2F2F7),
-    val secondaryBackground: Color = Color(0xFFE5E5EA),
+    val background: Color = Color(0xFFFFFFFF),
+    val secondaryBackground: Color = Color(0xFFF2F2F7),
     val surface: Color = Color.White,
-    val primary: Color = Color(0xFF007AFF),
+    val primary: Color = Color(0xFF157EFB),
     val primaryVariant: Color = Color(0xFF0056CC),
     val secondaryLabel: Color = Color(0xFF8E8E93),
     val tertiaryLabel: Color = Color(0xFFC7C7CC),
@@ -24,9 +24,9 @@ data class IOSColors(
     val segmentedControlSelected: Color = Color.White,
     val searchBarBackground: Color = Color(0xFFE9E9EB),
     val progressTrack: Color = Color(0xFFE5E5EA),
-    val progressFill: Color = Color(0xFF007AFF),
-    val cardShadow: Color = Color(0x0D000000),
-    val shelfReading: Color = Color(0xFF007AFF),
+    val progressFill: Color = Color(0xFF157EFB),
+    val cardShadow: Color = Color.Transparent,
+    val shelfReading: Color = Color(0xFF157EFB),
     val shelfRead: Color = Color(0xFF34C759),
     val shelfAbandoned: Color = Color(0xFFFF3B30),
     val shelfReadingList: Color = Color(0xFFFF9500)

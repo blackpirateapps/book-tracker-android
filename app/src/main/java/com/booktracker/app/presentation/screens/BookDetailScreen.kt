@@ -86,10 +86,10 @@ fun BookDetailScreen(
                 Box(
                     modifier = Modifier
                         .shadow(
-                            elevation = 16.dp,
+                            elevation = 4.dp,
                             shape = shapes.cover,
-                            ambientColor = Color.Black.copy(alpha = 0.15f),
-                            spotColor = Color.Black.copy(alpha = 0.2f)
+                            ambientColor = Color.Black.copy(alpha = 0.05f),
+                            spotColor = Color.Black.copy(alpha = 0.1f)
                         )
                         .clip(shapes.cover)
                 ) {
@@ -151,18 +151,11 @@ fun BookDetailScreen(
                 ) { showProgress ->
                     if (showProgress) {
                         Column(
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .shadow(
-                                    elevation = 6.dp,
-                                    shape = shapes.card,
-                                    ambientColor = Color.Black.copy(alpha = 0.06f),
-                                    spotColor = Color.Black.copy(alpha = 0.08f)
-                                )
-                                .clip(shapes.card)
                                 .background(colors.surface)
-                                .border(0.5.dp, colors.separator.copy(alpha = 0.3f), shapes.card)
-                                .padding(spacing.md),
+                                .padding(vertical = spacing.md),
                             verticalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
                             BasicText(
@@ -217,16 +210,8 @@ fun BookDetailScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .shadow(
-                            elevation = 6.dp,
-                            shape = shapes.card,
-                            ambientColor = Color.Black.copy(alpha = 0.06f),
-                            spotColor = Color.Black.copy(alpha = 0.08f)
-                        )
-                        .clip(shapes.card)
                         .background(colors.surface)
-                        .border(0.5.dp, colors.separator.copy(alpha = 0.3f), shapes.card)
-                        .padding(spacing.md),
+                        .padding(vertical = spacing.md),
                     verticalArrangement = Arrangement.spacedBy(spacing.sm)
                 ) {
                     BasicText(

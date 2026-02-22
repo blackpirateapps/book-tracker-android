@@ -39,143 +39,145 @@ fun HomeScreen(
         shelves.indexOf(uiState.selectedShelf)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
-            .statusBarsPadding()
-    ) {
-        // Navigation bar with large title and add button
-        IOSNavigationBar(
-            title = "My Books",
-            trailingContent = {
-                Box(
-                    modifier = Modifier
-                        .size(34.dp)
-                        .shadow(2.dp, CircleShape)
-                        .clip(CircleShape)
-                        .background(colors.primary)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) { onEvent(HomeEvent.OnAddBookClicked) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    BasicText(
-                        text = "+",
-                        style = IOSTheme.typography.title3.copy(
-                            color = Color.White,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 22.sp,
-                            lineHeight = 22.sp
-                        )
-                    )
-                }
-            }
-        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.background)
+                .statusBarsPadding()
+        ) {
+            // Navigation bar with large title
+            IOSNavigationBar(
+                title = "My Books"
+            )
 
-        // Search bar
-        IOSSearchBar(
-            query = uiState.searchQuery,
-            onQueryChange = { onEvent(HomeEvent.OnSearchChanged(it)) },
-            modifier = Modifier.padding(horizontal = spacing.md)
-        )
+            // Search bar
+            IOSSearchBar(
+                query = uiState.searchQuery,
+                onQueryChange = { onEvent(HomeEvent.OnSearchChanged(it)) },
+                modifier = Modifier.padding(horizontal = spacing.md)
+            )
 
-        Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-        // Segmented control
-        IOSSegmentedControl(
-            items = shelfLabels,
-            selectedIndex = selectedIndex,
-            onItemSelected = { index ->
-                onEvent(HomeEvent.OnShelfChanged(shelves[index]))
-            },
-            modifier = Modifier.padding(horizontal = spacing.md)
-        )
+            // Segmented control
+            IOSSegmentedControl(
+                items = shelfLabels,
+                selectedIndex = selectedIndex,
+                onItemSelected = { index ->
+                    onEvent(HomeEvent.OnShelfChanged(shelves[index]))
+                },
+                modifier = Modifier.padding(horizontal = spacing.md)
+            )
 
-        Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-        // Book list
-        Crossfade(
-            targetState = uiState.selectedShelf,
-            animationSpec = tween(300),
-            label = "shelfCrossfade"
-        ) { _ ->
-            if (uiState.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    BasicText(
-                        text = "Loading...",
-                        style = IOSTheme.typography.body.copy(color = colors.secondaryLabel)
-                    )
-                }
-            } else if (uiState.filteredBooks.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(spacing.xl),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(spacing.sm)
+            // Book list
+            Crossfade(
+                targetState = uiState.selectedShelf,
+                animationSpec = tween(300),
+                label = "shelfCrossfade"
+            ) { _ ->
+                if (uiState.isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
                         BasicText(
-                            text = "📚",
-                            style = IOSTheme.typography.largeTitle.copy(
-                                fontSize = 48.sp
-                            )
-                        )
-                        BasicText(
-                            text = "No books yet",
-                            style = IOSTheme.typography.title3.copy(
-                                color = colors.label
-                            )
-                        )
-                        BasicText(
-                            text = "Tap + to add your first book",
-                            style = IOSTheme.typography.subheadline.copy(
-                                color = colors.secondaryLabel
-                            )
+                            text = "Loading...",
+                            style = IOSTheme.typography.body.copy(color = colors.secondaryLabel)
                         )
                     }
-                }
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(
-                        start = spacing.md,
-                        end = spacing.md,
-                        top = spacing.xs,
-                        bottom = spacing.xxl
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    itemsIndexed(
-                        items = uiState.filteredBooks,
-                        key = { _, book -> book.id }
-                    ) { index, book ->
-                        var visible by remember { mutableStateOf(false) }
-                        LaunchedEffect(book.id) {
-                            visible = true
-                        }
-                        AnimatedVisibility(
-                            visible = visible,
-                            enter = fadeIn(tween(400, delayMillis = index * 60)) +
-                                    slideInVertically(
-                                        tween(400, delayMillis = index * 60),
-                                        initialOffsetY = { it / 5 }
-                                    )
+                } else if (uiState.filteredBooks.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(spacing.xl),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(spacing.sm)
                         ) {
-                            BookCard(
-                                book = book,
-                                onClick = { onBookClick(book.id) }
+                            BasicText(
+                                text = "📚",
+                                style = IOSTheme.typography.largeTitle.copy(
+                                    fontSize = 48.sp
+                                )
                             )
+                            BasicText(
+                                text = "No books yet",
+                                style = IOSTheme.typography.title3.copy(
+                                    color = colors.label
+                                )
+                            )
+                            BasicText(
+                                text = "Tap + to add your first book",
+                                style = IOSTheme.typography.subheadline.copy(
+                                    color = colors.secondaryLabel
+                                )
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        contentPadding = PaddingValues(
+                            top = 0.dp,
+                            bottom = 100.dp // Padding for FAB
+                        ),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        itemsIndexed(
+                            items = uiState.filteredBooks,
+                            key = { _, book -> book.id }
+                        ) { index, book ->
+                            var visible by remember { mutableStateOf(false) }
+                            LaunchedEffect(book.id) {
+                                visible = true
+                            }
+                            AnimatedVisibility(
+                                visible = visible,
+                                enter = fadeIn(tween(400, delayMillis = index * 30)) +
+                                        slideInVertically(
+                                            tween(400, delayMillis = index * 30),
+                                            initialOffsetY = { it / 5 }
+                                        )
+                            ) {
+                                BookCard(
+                                    book = book,
+                                    onClick = { onBookClick(book.id) }
+                                )
+                            }
                         }
                     }
                 }
             }
+        }
+        
+        // Floating Action Button
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 32.dp, end = 24.dp) // Things 3 places FAB at bottom-right or center-right
+                .size(56.dp)
+                .shadow(elevation = 6.dp, shape = CircleShape, ambientColor = colors.primary.copy(alpha = 0.4f), spotColor = colors.primary.copy(alpha = 0.6f))
+                .clip(CircleShape)
+                .background(colors.primary)
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) { onEvent(HomeEvent.OnAddBookClicked) },
+            contentAlignment = Alignment.Center
+        ) {
+            BasicText(
+                text = "+",
+                style = IOSTheme.typography.largeTitle.copy(
+                    color = Color.White,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 32.sp,
+                ),
+                modifier = Modifier.offset(y = (-2).dp)
+            )
         }
     }
 }

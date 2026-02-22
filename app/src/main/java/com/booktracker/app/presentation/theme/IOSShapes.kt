@@ -8,9 +8,9 @@ import androidx.compose.ui.unit.dp
 
 @Immutable
 data class IOSShapes(
-    val card: Shape = RoundedCornerShape(20.dp),
-    val cover: Shape = RoundedCornerShape(12.dp),
-    val button: Shape = RoundedCornerShape(12.dp),
+    val card: Shape = RoundedCornerShape(0.dp),
+    val cover: Shape = RoundedCornerShape(4.dp), // Things 3 uses very small rounding for list item images
+    val button: Shape = RoundedCornerShape(10.dp),
     val capsule: Shape = RoundedCornerShape(50),
     val searchBar: Shape = RoundedCornerShape(10.dp),
     val segmentedControl: Shape = RoundedCornerShape(8.dp),

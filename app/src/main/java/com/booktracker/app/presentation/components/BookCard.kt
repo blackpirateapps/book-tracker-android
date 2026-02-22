@@ -37,62 +37,47 @@ fun BookCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(
-                elevation = 6.dp,
-                shape = shapes.card,
-                ambientColor = Color.Black.copy(alpha = 0.06f),
-                spotColor = Color.Black.copy(alpha = 0.08f)
-            )
-            .clip(shapes.card)
             .background(colors.surface)
-            .border(
-                width = 0.5.dp,
-                color = colors.separator.copy(alpha = 0.3f),
-                shape = shapes.card
-            )
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             ) { onClick() }
-            .padding(spacing.md)
+            .padding(horizontal = spacing.md, vertical = spacing.sm)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            // Cover image with subtle shadow
-            Box(
-                modifier = Modifier
-                    .shadow(4.dp, shapes.cover)
-                    .clip(shapes.cover)
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                AsyncImage(
-                    model = book.coverUrl,
-                    contentDescription = "${book.title} cover",
-                    contentScale = ContentScale.Crop,
+                // Cover image with small radius
+                Box(
                     modifier = Modifier
-                        .width(dimensions.coverWidth)
-                        .height(dimensions.coverHeight)
-                        .background(colors.fill)
-                )
-            }
+                        .clip(shapes.cover)
+                ) {
+                    AsyncImage(
+                        model = book.coverUrl,
+                        contentDescription = "${book.title} cover",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .width(dimensions.coverWidth * 0.8f)
+                            .height(dimensions.coverHeight * 0.8f)
+                            .background(colors.fill)
+                    )
+                }
 
-            // Book info
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(dimensions.coverHeight),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
+                // Book info
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center
                 ) {
                     BasicText(
                         text = book.title,
-                        style = typography.headline.copy(color = colors.label),
-                        maxLines = 2,
+                        style = typography.body.copy(color = colors.label, fontWeight = FontWeight.Medium),
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     BasicText(
                         text = book.author,
                         style = typography.subheadline.copy(
@@ -101,29 +86,37 @@ fun BookCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                }
+                    
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        ShelfTag(shelf = book.shelf)
 
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    // Shelf tag
-                    ShelfTag(shelf = book.shelf)
-
-                    // Progress bar (only for Reading)
-                    if (book.shelf == ShelfType.READING) {
-                        IOSProgressBar(
-                            progress = book.progress / 100f,
-                            modifier = Modifier.fillMaxWidth(),
-                            height = 5.dp
-                        )
-                        BasicText(
-                            text = "${book.progress}% completed",
-                            style = typography.caption1.copy(
-                                color = colors.secondaryLabel,
-                                fontWeight = FontWeight.Medium
+                        // Progress text (only for Reading)
+                        if (book.shelf == ShelfType.READING) {
+                            BasicText(
+                                text = "${book.progress}%",
+                                style = typography.caption1.copy(
+                                    color = colors.secondaryLabel,
+                                    fontWeight = FontWeight.Medium
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }
+            
+            Spacer(modifier = Modifier.height(spacing.sm))
+            // Bottom separator
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(0.5.dp)
+                    .background(colors.separator)
+            )
         }
     }
 }
