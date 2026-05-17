@@ -70,23 +70,37 @@ fun SettingsScreen(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 SectionLabelText("API CONFIGURATION")
                 CardContainer {
-                    SettingRow(
-                        icon = Icons.Default.Link,
-                        title = "API Base URL",
-                        subtitle = apiDomain.ifBlank { "https://notes.blackpiratex.com" }
-                    )
-                    RowDivider()
-                    SettingRow(
-                        icon = Icons.Default.Key,
-                        title = "API Password",
-                        subtitle = if (apiPassword.isNotBlank()) "••••••••" else "••••••••"
-                    )
-                    RowDivider()
-                    SettingRow(
-                        icon = Icons.Default.Language,
-                        title = "Default Hostname",
-                        subtitle = deriveHostname(apiDomain)
-                    )
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = apiDomain,
+                            onValueChange = onApiDomainChanged,
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("API Base URL") },
+                            leadingIcon = { Icon(Icons.Default.Link, null) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(8.dp),
+                            placeholder = { Text("https://example.com") }
+                        )
+                        OutlinedTextField(
+                            value = apiPassword,
+                            onValueChange = onApiPasswordChanged,
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("API Password") },
+                            leadingIcon = { Icon(Icons.Default.Key, null) },
+                            singleLine = true,
+                            visualTransformation = PasswordVisualTransformation(),
+                            shape = RoundedCornerShape(8.dp),
+                            placeholder = { Text("Enter your password") }
+                        )
+                        SettingRow(
+                            icon = Icons.Default.Language,
+                            title = "Default Hostname",
+                            subtitle = deriveHostname(apiDomain)
+                        )
+                    }
                 }
 
                 if (testResult == true) {

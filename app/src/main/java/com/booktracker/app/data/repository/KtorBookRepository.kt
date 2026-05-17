@@ -19,6 +19,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
+import android.util.Log
 
 class KtorBookRepository(
     private val themePreferences: ThemePreferences
@@ -69,15 +70,15 @@ class KtorBookRepository(
         }
     }
 
-    override suspend fun addBook(book: Book) {
+    override suspend fun addBook(book: Book): Result<Boolean> {
         val payload = buildJsonObject {
             put("olid", book.id)
             put("shelf", book.shelf.apiValue)
         }
-        performAction("add", payload)
+        return performAction("add", payload)
     }
 
-    override suspend fun updateBook(book: Book) {
+    override suspend fun updateBook(book: Book): Result<Boolean> {
         val payload = buildJsonObject {
             put("id", book.id)
             put("shelf", book.shelf.apiValue)
@@ -91,22 +92,42 @@ class KtorBookRepository(
                 book.authors.forEach { add(it) }
             }
         }
-        performAction("update", payload)
+        return performAction("update", payload)
     }
 
-    override suspend fun deleteBook(id: String) {
-        performAction("delete", buildJsonObject { put("id", id) })
+    override suspend fun deleteBook(id: String): Result<Boolean> {
+        return performAction("delete", buildJsonObject { put("id", id) })
     }
 
-    private suspend fun performAction(action: String, data: JsonElement) {
-        try {
-            client.post("$baseUrl/api/books") {
+    private suspend fun performAction(action: String, data: JsonElement): Result<Boolean> {
+        return try {
+            if (baseUrl.isBlank() || password.isBlank()) {
+                val error = "API configuration incomplete: baseUrl='$baseUrl', password set=${password.isNotBlank()}"
+                Log.w(TAG, error)
+                return Result.failure(Exception(error))
+            }
+            
+            val response = client.post("$baseUrl/api/books") {
                 contentType(ContentType.Application.Json)
                 setBody(ActionRequest(password, action, data))
             }
+            
+            if (response.status.isSuccess()) {
+                Log.i(TAG, "Action '$action' succeeded")
+                Result.success(true)
+            } else {
+                val error = "Server returned ${response.status} for action '$action'"
+                Log.w(TAG, error)
+                Result.failure(Exception(error))
+            }
         } catch (e: Exception) {
-            // Log error
+            Log.e(TAG, "Error performing action '$action': ${e.message}", e)
+            Result.failure(e)
         }
+    }
+    
+    companion object {
+        private const val TAG = "KtorBookRepository"
     }
 
     @Serializable

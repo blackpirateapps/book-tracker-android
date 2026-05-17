@@ -6,9 +6,9 @@ import com.booktracker.app.domain.model.SearchBook
 interface BookRepository {
     suspend fun getBooks(): List<Book>
     suspend fun getBookById(id: String): Book?
-    suspend fun addBook(book: Book)
-    suspend fun updateBook(book: Book)
-    suspend fun deleteBook(id: String)
+    suspend fun addBook(book: Book): Result<Boolean>
+    suspend fun updateBook(book: Book): Result<Boolean>
+    suspend fun deleteBook(id: String): Result<Boolean>
     suspend fun testConnection(): Result<Boolean>
     suspend fun fetchRawPublic(limit: Int = 3, offset: Int = 0): Result<String>
     suspend fun fetchRawBooks(): Result<String>

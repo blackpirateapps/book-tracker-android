@@ -17,19 +17,23 @@ class MockBookRepository : BookRepository {
         return books.find { it.id == id }
     }
 
-    override suspend fun addBook(book: Book) {
+    override suspend fun addBook(book: Book): Result<Boolean> {
         books.add(book)
+        return Result.success(true)
     }
 
-    override suspend fun updateBook(book: Book) {
+    override suspend fun updateBook(book: Book): Result<Boolean> {
         val index = books.indexOfFirst { it.id == book.id }
         if (index != -1) {
             books[index] = book
+            return Result.success(true)
         }
+        return Result.failure(Exception("Book not found"))
     }
 
-    override suspend fun deleteBook(id: String) {
-        books.removeAll { it.id == id }
+    override suspend fun deleteBook(id: String): Result<Boolean> {
+        val removed = books.removeAll { it.id == id }
+        return if (removed) Result.success(true) else Result.failure(Exception("Book not found"))
     }
 
     override suspend fun testConnection(): Result<Boolean> {

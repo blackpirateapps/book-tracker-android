@@ -60,6 +60,7 @@ class AddBookViewModel(
         if (hasError) return
 
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, addError = null) }
             val book = Book(
                 title = state.title.trim(),
                 author = state.author.trim(),
@@ -67,8 +68,14 @@ class AddBookViewModel(
                 progress = if (state.shelf == ShelfType.READING) state.progress else 0,
                 coverUrl = "https://covers.openlibrary.org/b/id/12547191-L.jpg"
             )
-            addBookUseCase(book)
-            _uiState.update { it.copy(isSuccess = true) }
+            val result = addBookUseCase(book)
+            _uiState.update { 
+                if (result.isSuccess) {
+                    it.copy(isSuccess = true, isLoading = false)
+                } else {
+                    it.copy(isLoading = false, addError = result.exceptionOrNull()?.message ?: "Failed to add book")
+                }
+            }
         }
     }
 

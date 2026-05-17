@@ -13,11 +13,11 @@ class GetBookByIdUseCase(private val repository: BookRepository) {
 }
 
 class AddBookUseCase(private val repository: BookRepository) {
-    suspend operator fun invoke(book: Book) = repository.addBook(book)
+    suspend operator fun invoke(book: Book): Result<Boolean> = repository.addBook(book)
 }
 
 class UpdateBookUseCase(private val repository: BookRepository) {
-    suspend operator fun invoke(book: Book) = repository.updateBook(book)
+    suspend operator fun invoke(book: Book): Result<Boolean> = repository.updateBook(book)
 }
 
 class SearchBooksUseCase(private val repository: BookRepository) {

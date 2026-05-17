@@ -91,8 +91,14 @@ class BookDetailViewModel(
                         description = state.editDescription.ifBlank { null }
                     )
                     viewModelScope.launch {
-                        updateBookUseCase(updatedBook)
-                        _uiState.update { it.copy(book = updatedBook, isEditing = false) }
+                        _uiState.update { it.copy(updateInProgress = true, updateError = null) }
+                        val result = updateBookUseCase(updatedBook)
+                        if (result.isSuccess) {
+                            _uiState.update { it.copy(book = updatedBook, isEditing = false, updateInProgress = false, updateSuccess = "Book saved successfully") }
+                        } else {
+                            val errorMsg = result.exceptionOrNull()?.message ?: "Failed to save book"
+                            _uiState.update { it.copy(updateInProgress = false, updateError = errorMsg) }
+                        }
                     }
                 }
             }
@@ -136,14 +142,21 @@ class BookDetailViewModel(
         val state = _uiState.value
         val book = state.book ?: return
         
-        // If we're editing, we just update the book reference object (but wait, we need to bind it separately if we want to not save immediately? 
-        // Oh the slider is bound to the actual progress. So the actual progress will be changed live.
         val updated = book.copy(progress = progress.coerceIn(0, 100))
         viewModelScope.launch {
             if (!state.isEditing) {
-                updateBookUseCase(updated)
+                _uiState.update { it.copy(updateInProgress = true) }
+                val result = updateBookUseCase(updated)
+                _uiState.update { 
+                    if (result.isSuccess) {
+                        it.copy(book = updated, updateInProgress = false)
+                    } else {
+                        it.copy(updateInProgress = false, updateError = result.exceptionOrNull()?.message ?: "Update failed")
+                    }
+                }
+            } else {
+                _uiState.update { it.copy(book = updated) }
             }
-            _uiState.update { it.copy(book = updated) }
         }
     }
 
@@ -157,9 +170,18 @@ class BookDetailViewModel(
         val updated = book.copy(shelf = shelf, progress = progress)
         viewModelScope.launch {
             if (!_uiState.value.isEditing) {
-                updateBookUseCase(updated)
+                _uiState.update { it.copy(updateInProgress = true) }
+                val result = updateBookUseCase(updated)
+                _uiState.update {
+                    if (result.isSuccess) {
+                        it.copy(book = updated, updateInProgress = false)
+                    } else {
+                        it.copy(updateInProgress = false, updateError = result.exceptionOrNull()?.message ?: "Update failed")
+                    }
+                }
+            } else {
+                _uiState.update { it.copy(book = updated) }
             }
-            _uiState.update { it.copy(book = updated) }
         }
     }
 

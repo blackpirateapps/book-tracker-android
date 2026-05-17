@@ -45,7 +45,10 @@ data class BookDetailUiState(
     val editStartedOn: String = "",
     val editFinishedOn: String = "",
     val editPageCount: String = "",
-    val editDescription: String = ""
+    val editDescription: String = "",
+    val updateInProgress: Boolean = false,
+    val updateSuccess: String? = null,
+    val updateError: String? = null
 )
 
 sealed class BookDetailEvent {
@@ -75,7 +78,9 @@ data class AddBookUiState(
     val progress: Int = 0,
     val titleError: String? = null,
     val authorError: String? = null,
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
+    val isLoading: Boolean = false,
+    val addError: String? = null
 )
 
 sealed class AddBookEvent {
